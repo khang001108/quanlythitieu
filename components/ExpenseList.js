@@ -10,6 +10,7 @@ export default function ExpenseList({ items, setItems }) {
           <div>
             <div className="font-semibold">{i.desc}</div>
             <div className="text-sm text-gray-500">ID: {i.id}</div>
+            <div className="text-sm text-gray-500">Ngày: {new Date().toLocaleString()}</div>
           </div>
           <div className="flex items-center gap-4">
             <div className="font-bold">{i.amount.toLocaleString()} đ</div>
