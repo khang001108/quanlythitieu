@@ -1,6 +1,5 @@
-// pages/login.js
-import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState, useEffect } from "react";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useRouter } from "next/router";
 
@@ -10,14 +9,23 @@ export default function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // 🔹 Nếu đã login → redirect về home
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) router.replace("/"); 
+    });
+    return () => unsubscribe();
+  }, [router]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      setError("");
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/"); // chuyển về trang chính
+      router.push("/"); 
     } catch (err) {
-      setError("Sai email hoặc mật khẩu!");
       console.error(err);
+      setError("Sai email hoặc mật khẩu!");
     }
   };
 
@@ -30,17 +38,17 @@ export default function Login() {
           <input
             type="email"
             placeholder="Email"
-            className="border rounded p-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="border rounded p-2"
             required
           />
           <input
             type="password"
             placeholder="Mật khẩu"
-            className="border rounded p-2"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="border rounded p-2"
             required
           />
           <button
@@ -50,7 +58,6 @@ export default function Login() {
             Đăng nhập
           </button>
         </form>
-
         <p className="text-center mt-4 text-gray-600">
           Chưa có tài khoản?{" "}
           <a href="/signup" className="text-blue-500 hover:underline">

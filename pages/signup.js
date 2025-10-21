@@ -1,7 +1,7 @@
-// pages/signup.js
-import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { useState, useEffect } from "react";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 
 export default function Signup() {
@@ -10,14 +10,25 @@ export default function Signup() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // 🔹 Nếu đã login → redirect về home
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) router.replace("/");
+    });
+    return () => unsubscribe();
+  }, [router]);
+
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      router.push("/"); // quay lại trang chính
+      setError("");
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // 🔹 Tạo document user mặc định trong Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), { salary: 0 });
+      router.push("/");
     } catch (err) {
-      setError("Không thể tạo tài khoản! " + err.message);
       console.error(err);
+      setError("Tạo tài khoản thất bại: " + err.message);
     }
   };
 
@@ -30,17 +41,17 @@ export default function Signup() {
           <input
             type="email"
             placeholder="Email"
-            className="border rounded p-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="border rounded p-2"
             required
           />
           <input
             type="password"
-            placeholder="Mật khẩu (ít nhất 6 ký tự)"
-            className="border rounded p-2"
+            placeholder="Mật khẩu"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="border rounded p-2"
             required
           />
           <button
@@ -50,7 +61,6 @@ export default function Signup() {
             Đăng ký
           </button>
         </form>
-
         <p className="text-center mt-4 text-gray-600">
           Đã có tài khoản?{" "}
           <a href="/login" className="text-blue-500 hover:underline">
