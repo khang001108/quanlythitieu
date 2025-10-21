@@ -19,7 +19,7 @@ export default function ExpenseForm({ setItems }) {
           className="col-span-2 border p-2 rounded"
           value={desc}
           onChange={e => setDesc(e.target.value)}
-          placeholder="Nội dung chi tiêu"
+          placeholder="Nội dung chi tiêu kkk"
         />
         <input
           className="border p-2 rounded"
