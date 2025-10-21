@@ -3,7 +3,6 @@ import ExpenseForm from "../components/ExpenseForm"
 import ExpenseList from "../components/ExpenseList"
 import Summary from "../components/Summary"
 import ExpenseChart from "../components/ExpenseChart"
-import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
