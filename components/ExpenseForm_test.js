@@ -1,42 +1,67 @@
-import { useState } from "react"
+// components/ExpenseForm.js
+import { useState } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
-export default function ExpenseForm({ setItems }) {
-  const [name, setName] = useState("")
-  const [amount, setAmount] = useState("")
+export default function ExpenseForm({ setItems, user }) {
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
 
-  const submit = (e) => {
-    e.preventDefault()
-    if (!name || !amount) return
-    const newExpense = {
-      id: Date.now(),
-      name,
-      amount: Number(amount),
-      date: new Date().toISOString(), // 🔹 thêm ngày giờ
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name || !amount || !user) return;
+
+    try {
+      const newExpense = {
+        name,
+        amount: Number(amount),
+        date: new Date().toISOString(),
+        userId: user.uid,
+      };
+
+      // 🔹 Thêm vào Firestore
+      await addDoc(collection(db, "expenses"), {
+        ...newExpense,
+        createdAt: serverTimestamp(),
+      });
+
+      // 🔹 Clear form
+      setName("");
+      setAmount("");
+    } catch (err) {
+      console.error("Thêm chi tiêu thất bại:", err);
     }
-    setItems(prev => [...prev, newExpense])
-    setName("")
-    setAmount("")
-  }
+  };
 
   return (
-    <form onSubmit={submit} className="bg-white p-4 rounded-xl shadow space-y-3">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-4 rounded-xl shadow flex flex-col gap-3"
+    >
       <input
         type="text"
+        placeholder="Nội dung chi tiêu"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Nội dung chi tiêu"
-        className="w-full border p-2 rounded-lg"
+        className="border rounded p-2"
+        required
       />
       <input
         type="number"
+        placeholder="Số tiền"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        placeholder="Số tiền"
-        className="w-full border p-2 rounded-lg"
+        className="border rounded p-2"
+        required
       />
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-        Thêm
-      </button>
+      <div className="flex justify-end mt-2">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600"
+        >
+          ✒Thêm
+        </button>
+      </div>
     </form>
-  )
+  );
 }

@@ -1,5 +1,5 @@
 import {
-  BarChart,
+  ComposedChart,
   Bar,
   XAxis,
   YAxis,
@@ -8,45 +8,61 @@ import {
   LabelList,
 } from "recharts";
 
-export default function ExpenseChart({ items }) {
-  // 🔹 Tạo dữ liệu theo tháng
-  const monthlyData = {};
+const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  items.forEach((item) => {
+export default function ExpenseChart({ items, salary }) {
+  // 🔹 Chi tiêu từng tháng
+  const monthlyExpense = {};
+  items.forEach(item => {
     const date = new Date(item.date);
     if (isNaN(date)) return;
-    const month = date.getMonth(); // 0-11
-    monthlyData[month] = (monthlyData[month] || 0) + Number(item.amount || 0);
+    const month = date.getMonth();
+    monthlyExpense[month] = (monthlyExpense[month] || 0) + Number(item.amount || 0);
   });
 
-  // 🔹 Chuyển thành mảng, sắp xếp tháng 0→11
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const data = Array.from({ length: 12 }, (_, i) => ({
-    month: monthNames[i],
-    amount: monthlyData[i] || 0,
-  }));
+  // 🔹 Dữ liệu chart
+  const data = Array.from({ length: 12 }, (_, i) => {
+    const s = salary[i] || 0;
+    const e = monthlyExpense[i] || 0;
+    return {
+      month: monthNames[i],
+      expense: e,
+      salary: s,
+      remain: s - e > 0 ? s - e : 0,
+    };
+  });
 
-  // 🔹 Format tooltip
+  // 🔹 Cột tổng
+  const totalSalary = Object.values(salary).reduce((a,b)=>a+b,0);
+  const totalExpense = Object.values(monthlyExpense).reduce((a,b)=>a+b,0);
+  data.push({ month:"Tổng", expense: totalExpense, salary: totalSalary, remain: totalSalary - totalExpense });
+
   const tooltipFormatter = (value) => `${value.toLocaleString()}₫`;
+  const maxY = Math.max(...data.map(d=>Math.max(d.salary,d.expense)),20000000);
 
   return (
     <div className="bg-white p-4 rounded-xl shadow">
-      <h2 className="text-lg font-semibold mb-2">Thống kê chi tiêu theo tháng</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
+      <h2 className="text-lg font-semibold mb-2">So sánh chi tiêu & lương</h2>
+      <ResponsiveContainer width="100%" height={350}>
+        <ComposedChart data={data} margin={{ top:20,right:20,left:0,bottom:5 }}>
           <XAxis dataKey="month" />
-          <YAxis tickFormatter={(value) => value.toLocaleString()} />
+          <YAxis tickFormatter={v=>`${(v/1000000).toFixed(1)}M`} domain={[0,maxY]} />
           <Tooltip formatter={tooltipFormatter} />
-          <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-            <LabelList
-              dataKey="amount"
-              position="top"
-              formatter={(value) => (value > 0 ? value.toLocaleString() + "₫" : "")}
-              style={{ fontSize: 12, fontWeight: "bold", fill: "#1e3a8a" }}
-            />
+
+          <Bar dataKey="expense" fill="#ef4444" barSize={30}>
+            <LabelList dataKey="expense" position="top" formatter={v=>v>0?v.toLocaleString()+"₫":""} />
           </Bar>
-        </BarChart>
+          <Bar dataKey="salary" fill="#10b981" barSize={30}>
+            <LabelList dataKey="salary" position="top" formatter={v=>v>0?v.toLocaleString()+"₫":""} />
+          </Bar>
+          <Bar dataKey="remain" fill="#facc15" barSize={20}>
+            <LabelList dataKey="remain" position="insideTop" formatter={v=>v>0?v.toLocaleString()+"₫":""} />
+          </Bar>
+        </ComposedChart>
       </ResponsiveContainer>
+      <div className="text-gray-500 text-sm mt-2">
+        Trục Y chia thành mức: Nhẹ &lt;7tr, Trung bình 7-14tr, Cao &gt;14tr
+      </div>
     </div>
   );
 }

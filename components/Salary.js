@@ -1,56 +1,49 @@
-// components/Salary.js
 import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
+const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
 export default function Salary({ user, salary, setSalary }) {
   const [loading, setLoading] = useState(true);
-  const [input, setInput] = useState(""); // giá trị input tạm
+  const [inputMonth, setInputMonth] = useState(0); // tháng hiện tại chọn
+  const [inputValue, setInputValue] = useState("");
 
-  // 🔹 Lấy salary từ Firestore khi user thay đổi
+  // 🔹 Lấy salary từ Firestore
   useEffect(() => {
     if (!user) return;
-
     const fetchSalary = async () => {
       try {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const s = docSnap.data().salary || "";
-          setSalary(s);
-          setInput(s);
-        } else {
-          setSalary("");
-          setInput("");
-        }
+        const s = docSnap.exists() ? docSnap.data().salary || {} : {};
+        setSalary(s);
+        setInputValue(s[inputMonth] || "");
       } catch (err) {
-        console.error("Lấy salary thất bại:", err);
-        setSalary("");
-        setInput("");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchSalary();
-  }, [user, setSalary]);
+  }, [user]);
 
-  // 🔹 Cập nhật salary lên Firestore
+  // 🔹 Cập nhật salary tháng
   const handleSave = async () => {
     if (!user) return;
-    const newSalary = Number(input);
-    if (isNaN(newSalary) || newSalary < 0) {
-      alert("Vui lòng nhập số lương hợp lệ");
+    const val = Number(inputValue);
+    if (isNaN(val) || val < 0) {
+      alert("Nhập số hợp lệ");
       return;
     }
-
+    const newSalary = { ...salary, [inputMonth]: val };
+    setSalary(newSalary);
     try {
-      setSalary(newSalary);
       await setDoc(doc(db, "users", user.uid), { salary: newSalary }, { merge: true });
-      alert("Cập nhật lương thành công!");
+      alert("Cập nhật lương tháng " + monthNames[inputMonth] + " thành công!");
     } catch (err) {
-      console.error("Lưu salary thất bại:", err);
-      alert("Cập nhật lương thất bại, xem console để biết lý do.");
+      console.error(err);
+      alert("Cập nhật thất bại");
     }
   };
 
@@ -59,12 +52,24 @@ export default function Salary({ user, salary, setSalary }) {
 
   return (
     <div className="bg-white p-4 rounded-xl shadow">
-      <label className="block text-gray-700 font-semibold mb-2">Lương tháng:</label>
+      <label className="block text-gray-700 font-semibold mb-2">Chọn tháng:</label>
+      <select
+        value={inputMonth}
+        onChange={(e) => {
+          const m = Number(e.target.value);
+          setInputMonth(m);
+          setInputValue(salary[m] || "");
+        }}
+        className="border rounded-lg p-2 mb-2 w-full"
+      >
+        {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+      </select>
+
       <div className="flex gap-2">
         <input
           type="number"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           placeholder="Nhập lương tháng..."
           className="flex-1 border rounded-lg p-2"
         />

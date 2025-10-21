@@ -1,9 +1,8 @@
-// components/ExpenseForm.js
 import { useState } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
-export default function ExpenseForm({ setItems, user }) {
+export default function ExpenseForm({ setItems, user, selectedMonth, selectedYear }) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -11,21 +10,26 @@ export default function ExpenseForm({ setItems, user }) {
     e.preventDefault();
     if (!name || !amount || !user) return;
 
+    const dateObj = new Date();
+    // nếu cần, dùng selectedMonth & selectedYear để gán tháng/năm cụ thể
+    const month = selectedMonth !== undefined ? selectedMonth : dateObj.getMonth();
+    const year = selectedYear !== undefined ? selectedYear : dateObj.getFullYear();
+
     try {
       const newExpense = {
         name,
         amount: Number(amount),
-        date: new Date().toISOString(),
+        date: new Date(year, month, dateObj.getDate()).toISOString(),
+        month,
+        year,
         userId: user.uid,
       };
 
-      // 🔹 Thêm vào Firestore
       await addDoc(collection(db, "expenses"), {
         ...newExpense,
         createdAt: serverTimestamp(),
       });
 
-      // 🔹 Clear form
       setName("");
       setAmount("");
     } catch (err) {
