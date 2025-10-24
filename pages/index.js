@@ -8,7 +8,8 @@ import ExpenseChart from "../components/ExpenseChart";
 import ExpenseMonth from "../components/ExpenseMonth";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { LogOut, Trash2, User2 } from "lucide-react";
+import { LogOut, Trash2, User2, TrendingUp, TrendingDown } from "lucide-react";
+
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -147,7 +148,7 @@ export default function Home() {
               </span>
             </div>
             {/* Tổng dư cả năm */}
-            <div className="text-sm mt-1">
+            <div className="flex gap-2 pt-2 sm:pt-0 ml-auto justify-end">
               <span className="font-medium text-gray-700">💹 Tổng dư năm {selectedYear}: </span>
               <span
                 className={`font-semibold ${remainingYear < 0 ? "text-red-600" : "text-green-600"
@@ -160,20 +161,29 @@ export default function Home() {
           </div>
 
         </div>
-        <div className="flex gap-2 pt-2 sm:pt-0">
-          <button
-            onClick={handleDeleteAll}
-            className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 text-sm transition"
-          >
-            <Trash2 className="w-4 h-4" /> Xóa
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1 bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 text-sm transition"
-          >
-            <LogOut className="w-4 h-4" /> Thoát
-          </button>
+        {/* Container chung: một dòng, trái/phải */}
+        <div className="flex items-center w-full gap-2">
+          {/* Bên trái: nút Xóa */}
+          <div>
+            <button
+              onClick={handleDeleteAll}
+              className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 text-sm transition"
+            >
+              <Trash2 className="w-4 h-4" /> Xóa
+            </button>
+          </div>
+
+          {/* Dùng ml-auto để đẩy phần bên phải về cuối hàng */}
+          <div className="ml-auto">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 text-sm transition"
+            >
+              <LogOut className="w-4 h-4" /> Thoát
+            </button>
+          </div>
         </div>
+
 
         {/* 🔹 Tổng hợp nhanh (bình thường) */}
         <div className="space-y-5">
