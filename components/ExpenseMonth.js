@@ -1,4 +1,5 @@
-import { useState } from "react";
+// components/ExpenseMonth.js
+import React from "react";
 
 const monthNames = [
   "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -7,23 +8,16 @@ const monthNames = [
 
 export default function ExpenseMonth({ selectedMonth, setSelectedMonth, selectedYear, setSelectedYear }) {
   const currentYear = new Date().getFullYear();
-  const [tempMonth, setTempMonth] = useState(selectedMonth);
-  const [tempYear, setTempYear] = useState(selectedYear);
-
-  const handleConfirm = () => {
-    setSelectedMonth(tempMonth);
-    setSelectedYear(tempYear);
-  };
 
   return (
     <div className="bg-white p-4 rounded-xl shadow text-center space-y-3">
       <h2 className="text-lg font-semibold text-gray-800">📅 Chọn tháng / năm</h2>
 
       <div className="flex justify-center gap-3">
-        {/* Chọn tháng */}
+        {/* Chọn tháng — cập nhật ngay khi thay đổi */}
         <select
-          value={tempMonth}
-          onChange={(e) => setTempMonth(Number(e.target.value))}
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
           className="border border-gray-300 rounded-lg p-2 w-40 text-center focus:ring-2 focus:ring-blue-400"
         >
           {monthNames.map((m, i) => (
@@ -31,10 +25,10 @@ export default function ExpenseMonth({ selectedMonth, setSelectedMonth, selected
           ))}
         </select>
 
-        {/* Chọn năm */}
+        {/* Chọn năm — cập nhật ngay khi thay đổi */}
         <select
-          value={tempYear}
-          onChange={(e) => setTempYear(Number(e.target.value))}
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(Number(e.target.value))}
           className="border border-gray-300 rounded-lg p-2 w-32 text-center focus:ring-2 focus:ring-blue-400"
         >
           {Array.from({ length: 10 }, (_, i) => currentYear - 5 + i).map((y) => (
@@ -43,12 +37,7 @@ export default function ExpenseMonth({ selectedMonth, setSelectedMonth, selected
         </select>
       </div>
 
-      <button
-        onClick={handleConfirm}
-        className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold shadow transition duration-200"
-      >
-        ✅ Xác nhận tháng / năm
-      </button>
+      <p className="text-sm text-gray-500">Dữ liệu sẽ cập nhật ngay khi bạn thay đổi tháng hoặc năm.</p>
     </div>
   );
 }
