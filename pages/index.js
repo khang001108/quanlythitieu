@@ -8,7 +8,6 @@ import ExpenseChart from "../components/ExpenseChart";
 import ExpenseMonth from "../components/ExpenseMonth";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -23,12 +22,9 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  // When user or month/year change, clear items quickly so UI doesn't show old month
-  useEffect(() => {
-    setItems([]);
-    setSalary({});
-  }, [selectedMonth, selectedYear]);
-  
+  // NOTE: removed the effect that cleared items/salary on month/year change.
+  // Clearing here caused the UI to briefly be empty and sometimes not pick up onSnapshot fast enough.
+  // Instead we let the ExpenseList onSnapshot manage live updates.
 
   const handleLogout = async () => {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
@@ -41,6 +37,8 @@ export default function Home() {
   const handleDeleteAll = async () => {
     if (!confirm("Xóa tất cả khoản chi của bạn?")) return;
     try {
+      // delete all expenses for this user
+      const { collection, query, where, getDocs, deleteDoc, doc } = await import("firebase/firestore");
       const q = query(collection(db, "expenses"), where("userId", "==", user.uid));
       const snap = await getDocs(q);
       const promises = snap.docs.map(d => deleteDoc(doc(db, "expenses", d.id)));
