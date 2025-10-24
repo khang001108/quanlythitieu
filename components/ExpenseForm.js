@@ -53,15 +53,18 @@ export default function ExpenseForm({
 
   return (
     <>
+      {/* 🔹 Nút mở popup */}
       <div className="flex justify-end">
         <button
           onClick={() => setOpen(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:brightness-105 transition"
+          className="bg-green-500 text-white px-4 py-2 rounded-full shadow hover:brightness-105 transition"
         >
           + Thêm khoản chi
         </button>
       </div>
 
+
+      {/* 🔹 Popup */}
       {open && (
         // backdrop
         <div
