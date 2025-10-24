@@ -17,6 +17,8 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showMonthPopup, setShowMonthPopup] = useState(false);
+  const [showAddPopup, setShowAddPopup] = useState(false);
 
   // 🔹 Tính tổng lương & chi tiêu cả năm hiện tại
   const yearData = salary[String(selectedYear)] || {};
@@ -130,13 +132,16 @@ export default function Home() {
   // =======================
   // Giao diện chính
   // =======================
+  // =======================
+  // Giao diện chính
+  // =======================
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10">
       <div className="max-w-2xl mx-auto p-4 space-y-5">
-        {/* Header */}
-        <div className="flex flex-col bg-white shadow p-4 rounded-xl sticky top-0 z-20 backdrop-blur-md bg-opacity-95 space-y-2 sm:flex-row sm:justify-between sm:items-center">
+        {/* Header cố định đẹp, đổ bóng nổi */}
+        <div className="flex flex-col bg-white shadow-[0_6px_30px_rgba(99,102,241,0.25)] p-4 rounded-2xl sticky top-0 z-30 backdrop-blur-md bg-opacity-95 border border-indigo-100 space-y-2 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">
+            <h1 className="text-xl font-bold text-gray-800 tracking-tight">
               💰 Quản Lý Chi Tiêu
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
@@ -147,9 +152,12 @@ export default function Home() {
                 {user.uid}
               </span>
             </div>
+
             {/* Tổng dư cả năm */}
-            <div className="flex gap-2 pt-2 sm:pt-0 ml-auto justify-end">
-              <span className="font-medium text-gray-700">💹 Tổng dư năm {selectedYear}: </span>
+            <div className="flex items-center gap-2 mt-2 text-sm justify-end sm:justify-start">
+              <span className="font-medium text-gray-700">
+                💹 Tổng dư năm {selectedYear}:
+              </span>
               <span
                 className={`font-semibold ${remainingYear < 0 ? "text-red-600" : "text-green-600"
                   }`}
@@ -157,11 +165,11 @@ export default function Home() {
                 {remainingYear.toLocaleString()}₫
               </span>
             </div>
-
           </div>
 
         </div>
-        {/* Container chung: một dòng, trái/phải */}
+
+        {/* Hàng nút thao tác */}
         <div className="flex items-center w-full gap-2">
           {/* Bên trái: nút Xóa */}
           <div>
@@ -185,7 +193,7 @@ export default function Home() {
         </div>
 
 
-        {/* 🔹 Tổng hợp nhanh (bình thường) */}
+        {/* 🔹 Tổng hợp nhanh */}
         <div className="space-y-5">
           <Summary
             items={items}
@@ -195,15 +203,25 @@ export default function Home() {
           />
         </div>
 
-        {/* Bộ chọn tháng/năm */}
-        <div className="space-y-5">
+        {/* Hàng chứa 2 nút: chọn tháng/năm + thêm khoản chi */}
+        <div className="flex items-center justify-between">
+          {/* Bên trái: Nút chọn tháng/năm (mở popup) */}
           <ExpenseMonth
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}
           />
+
+          {/* Bên phải: Nút thêm khoản chi (mở popup) */}
+          <ExpenseForm
+            user={user}
+            setItems={setItems}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
         </div>
+
 
 
         {/* 🔹 Nội dung chính */}
@@ -212,12 +230,6 @@ export default function Home() {
             user={user}
             salary={salary}
             setSalary={setSalary}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-          />
-          <ExpenseForm
-            user={user}
-            setItems={setItems}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
@@ -237,4 +249,5 @@ export default function Home() {
       </div>
     </div>
   );
+
 }
