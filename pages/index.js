@@ -25,8 +25,10 @@ export default function Home() {
 
   // When user or month/year change, clear items quickly so UI doesn't show old month
   useEffect(() => {
-    setItems([]); // clear old items immediately (prevents flash)
-  }, [selectedMonth, selectedYear, user]);
+    setItems([]);
+    setSalary({});
+  }, [selectedMonth, selectedYear]);
+  
 
   const handleLogout = async () => {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
