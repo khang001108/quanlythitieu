@@ -17,8 +17,10 @@ export default function ExpenseForm({ user, setItems, selectedMonth, selectedYea
       name,
       amount: Number(amount),
       date: new Date().toISOString(),
-      month: selectedMonth,
-      year: selectedYear,
+      // month: selectedMonth,
+      // year: selectedYear,
+      month: Number(selectedMonth),   // ✅ ép kiểu số
+      year: Number(selectedYear),     // ✅ ép kiểu số
       createdAt: serverTimestamp()
     };
 

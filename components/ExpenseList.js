@@ -17,37 +17,37 @@ export default function ExpenseList({ user, items, setItems, selectedMonth, sele
       setItems([]);
       return;
     }
-
-    // build query: only expenses of this user + month + year
+  
+    console.log("📅 Load dữ liệu tháng:", selectedMonth, "năm:", selectedYear);
+  
     const q = query(
       collection(db, "expenses"),
       where("userId", "==", user.uid),
-      where("month", "==", selectedMonth),
-      where("year", "==", selectedYear),
+      where("month", "==", Number(selectedMonth)),   // ✅ ép kiểu
+      where("year", "==", Number(selectedYear)),     // ✅ ép kiểu
       orderBy("createdAt", "desc")
     );
-
-    const unsub = onSnapshot(q, snapshot => {
-      const data = snapshot.docs.map(d => {
+  
+    const unsub = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((d) => {
         const docData = d.data();
-        // normalize amount and date
         return {
           id: d.id,
           name: docData.name || "",
           amount: Number(docData.amount || 0),
           date: docData.date || (docData.createdAt ? docData.createdAt.toDate().toISOString() : ""),
           month: docData.month,
-          year: docData.year
+          year: docData.year,
         };
       });
+  
+      console.log("📊 Dữ liệu nhận được:", data);
       setItems(data);
-    }, err => {
-      console.error("Snapshot lỗi:", err);
-      setItems([]);
     });
-
+  
     return () => unsub();
   }, [user, selectedMonth, selectedYear, setItems]);
+  
 
   const remove = async (id) => {
     if (!confirm("Bạn có chắc muốn xóa?")) return;
