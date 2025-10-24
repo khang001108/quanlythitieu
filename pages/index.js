@@ -113,17 +113,23 @@ export default function Home() {
   // =======================
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="bg-white p-6 rounded-2xl shadow-md text-center w-80">
-          <h2 className="text-xl font-bold mb-3 text-gray-800">
-            Bạn chưa đăng nhập
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-blue-50 to-white">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl text-center w-80 sm:w-96 border border-gray-100">
+          <h2 className="text-xl sm:text-4xl font-extrabold mb-5 text-gray-800 tracking-tight leading-snug">
+            Một ngày mới⭐,
+          </h2>
+          <h2 className="text-2xl sm:text-4xl font-extrabold mb-5 text-gray-800 tracking-tight leading-snug">
+            một cơ hội mới🌈!
           </h2>
           <a
             href="/login"
-            className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+            className="inline-block bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:scale-105 transform transition-all duration-300"
           >
-            Đến trang đăng nhập
+            Bắt đầu nào
           </a>
+          <div className="text-center text-sm text-gray-400 mt-4">
+            Sáng tạo bởi Khazg.
+          </div>
         </div>
       </div>
     );
@@ -132,11 +138,9 @@ export default function Home() {
   // =======================
   // Giao diện chính
   // =======================
-  // =======================
-  // Giao diện chính
-  // =======================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-blue-50 to-white">
+      {/* <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10"> */}
       <div className="max-w-2xl mx-auto p-4 space-y-5">
         {/* Header cố định đẹp, đổ bóng nổi */}
         <div className="flex flex-col bg-white shadow-[0_6px_30px_rgba(99,102,241,0.25)] p-4 rounded-2xl sticky top-0 z-30 backdrop-blur-md bg-opacity-95 border border-indigo-100 space-y-2 sm:flex-row sm:justify-between sm:items-center">
