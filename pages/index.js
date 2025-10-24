@@ -17,6 +17,14 @@ export default function Home() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
+  // 🔹 Tính tổng lương & chi tiêu cả năm hiện tại
+  const yearData = salary[String(selectedYear)] || {};
+  const totalSalaryYear = Object.values(yearData).reduce((a, b) => a + Number(b || 0), 0);
+  const totalExpenseYear = items
+    .filter((i) => i.year === selectedYear)
+    .reduce((s, i) => s + Number(i.amount || 0), 0);
+  const remainingYear = totalSalaryYear - totalExpenseYear;
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
@@ -138,22 +146,33 @@ export default function Home() {
                 {user.uid}
               </span>
             </div>
+            {/* Tổng dư cả năm */}
+            <div className="text-sm mt-1">
+              <span className="font-medium text-gray-700">💹 Tổng dư năm {selectedYear}: </span>
+              <span
+                className={`font-semibold ${remainingYear < 0 ? "text-red-600" : "text-green-600"
+                  }`}
+              >
+                {remainingYear.toLocaleString()}₫
+              </span>
+            </div>
+
           </div>
 
-          <div className="flex gap-2 pt-2 sm:pt-0">
-            <button
-              onClick={handleDeleteAll}
-              className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 text-sm transition"
-            >
-              <Trash2 className="w-4 h-4" /> Xóa
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 text-sm transition"
-            >
-              <LogOut className="w-4 h-4" /> Thoát
-            </button>
-          </div>
+        </div>
+        <div className="flex gap-2 pt-2 sm:pt-0">
+          <button
+            onClick={handleDeleteAll}
+            className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 text-sm transition"
+          >
+            <Trash2 className="w-4 h-4" /> Xóa
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 text-sm transition"
+          >
+            <LogOut className="w-4 h-4" /> Thoát
+          </button>
         </div>
 
         {/* 🔹 Tổng hợp nhanh (bình thường) */}
