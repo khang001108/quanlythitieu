@@ -2,25 +2,32 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
-const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthNames = [
+  "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+];
 
-export default function Salary({ user, salary, setSalary }) {
+export default function Salary({ user, salary, setSalary, selectedMonth }) {
   const [loading, setLoading] = useState(true);
-  const [inputMonth, setInputMonth] = useState(0); // tháng hiện tại chọn
   const [inputValue, setInputValue] = useState("");
 
-  // 🔹 Lấy salary từ Firestore
+  // 🔹 Lấy lương từ Firestore
   useEffect(() => {
     if (!user) return;
     const fetchSalary = async () => {
       try {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        const s = docSnap.exists() ? docSnap.data().salary || {} : {};
-        setSalary(s);
-        setInputValue(s[inputMonth] || "");
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data().salary || {};
+          setSalary(data);
+          setInputValue(data[selectedMonth] || "");
+        } else {
+          setSalary({});
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Lỗi tải lương:", err);
       } finally {
         setLoading(false);
       }
@@ -28,43 +35,41 @@ export default function Salary({ user, salary, setSalary }) {
     fetchSalary();
   }, [user]);
 
-  // 🔹 Cập nhật salary tháng
+  // 🔹 Cập nhật khi đổi tháng được chọn
+  useEffect(() => {
+    if (salary) setInputValue(salary[selectedMonth] || "");
+  }, [selectedMonth, salary]);
+
+  // 🔹 Cập nhật lương tháng lên Firestore
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) return alert("Bạn cần đăng nhập");
     const val = Number(inputValue);
-    if (isNaN(val) || val < 0) {
-      alert("Nhập số hợp lệ");
-      return;
-    }
-    const newSalary = { ...salary, [inputMonth]: val };
+    if (isNaN(val) || val < 0) return alert("Vui lòng nhập số hợp lệ");
+
+    const newSalary = { ...salary, [selectedMonth]: val };
     setSalary(newSalary);
+
     try {
-      await setDoc(doc(db, "users", user.uid), { salary: newSalary }, { merge: true });
-      alert("Cập nhật lương tháng " + monthNames[inputMonth] + " thành công!");
+      await setDoc(
+        doc(db, "users", user.uid),
+        { salary: newSalary },
+        { merge: true }
+      );
+      alert(`✅ Cập nhật lương ${monthNames[selectedMonth]} thành công!`);
     } catch (err) {
-      console.error(err);
-      alert("Cập nhật thất bại");
+      console.error("Lỗi cập nhật:", err);
+      alert("❌ Cập nhật thất bại!");
     }
   };
 
   if (!user) return null;
-  if (loading) return <div>Đang tải lương...</div>;
+  if (loading) return <div>Đang tải dữ liệu lương...</div>;
 
   return (
     <div className="bg-white p-4 rounded-xl shadow">
-      <label className="block text-gray-700 font-semibold mb-2">Chọn tháng:</label>
-      <select
-        value={inputMonth}
-        onChange={(e) => {
-          const m = Number(e.target.value);
-          setInputMonth(m);
-          setInputValue(salary[m] || "");
-        }}
-        className="border rounded-lg p-2 mb-2 w-full"
-      >
-        {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-      </select>
-
+      <p className="text-gray-700 font-semibold mb-2">
+        Lương {monthNames[selectedMonth]}:
+      </p>
       <div className="flex gap-2">
         <input
           type="number"

@@ -1,3 +1,4 @@
+// components/ExpenseList.js
 import { useEffect } from "react";
 import {
   collection,
@@ -8,94 +9,89 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
+import { db } from "../lib/firebase";
 
-export default function ExpenseList({ items, setItems }) {
-  // 🔹 Lắng nghe dữ liệu theo user hiện tại từ Firestore
+export default function ExpenseList({ user, items, setItems, selectedMonth, selectedYear }) {
   useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      setItems([]);
+      return;
+    }
 
+    // build query: only expenses of this user + month + year
     const q = query(
       collection(db, "expenses"),
       where("userId", "==", user.uid),
+      where("month", "==", selectedMonth),
+      where("year", "==", selectedYear),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        amount: Number(doc.data().amount || 0), // chắc chắn là number
-      }));
+    const unsub = onSnapshot(q, snapshot => {
+      const data = snapshot.docs.map(d => {
+        const docData = d.data();
+        // normalize amount and date
+        return {
+          id: d.id,
+          name: docData.name || "",
+          amount: Number(docData.amount || 0),
+          date: docData.date || (docData.createdAt ? docData.createdAt.toDate().toISOString() : ""),
+          month: docData.month,
+          year: docData.year
+        };
+      });
       setItems(data);
+    }, err => {
+      console.error("Snapshot lỗi:", err);
+      setItems([]);
     });
 
-    return () => unsubscribe();
-  }, [setItems]);
+    return () => unsub();
+  }, [user, selectedMonth, selectedYear, setItems]);
 
-  // 🔹 Xóa chi tiêu: xóa state + database
   const remove = async (id) => {
-    if (!id) return;
-    if (confirm("Bạn có chắc muốn xóa khoản này không?")) {
-      try {
-        // Xóa cache UI ngay
-        setItems((prev) => prev.filter((item) => item.id !== id));
-
-        // Xóa Firestore
-        await deleteDoc(doc(db, "expenses", id));
-      } catch (error) {
-        console.error("Xóa thất bại:", error);
-      }
+    if (!confirm("Bạn có chắc muốn xóa?")) return;
+    try {
+      await deleteDoc(doc(db, "expenses", id));
+      // onSnapshot sẽ cập nhật UI tự động
+    } catch (err) {
+      console.error("Xóa lỗi:", err);
+      alert("Xóa thất bại");
     }
   };
 
-  if (!items || items.length === 0)
+  if (!items || items.length === 0) {
     return (
       <div className="bg-white p-4 rounded-xl shadow text-center text-gray-500">
-        Chưa có khoản chi nào
+        Chưa có khoản chi nào trong tháng {selectedMonth + 1}/{selectedYear}
       </div>
     );
+  }
 
-  // 🔹 Format ngày, tránh lỗi
-  const formatDate = (isoString) => {
-    const d = new Date(isoString);
-    if (isNaN(d.getTime())) return "Không xác định";
-    return d.toLocaleDateString("vi-VN") + " " + d.toLocaleTimeString("vi-VN");
+  const fmt = (iso) => {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleTimeString("vi-VN") + " " + d.toLocaleDateString("vi-VN");
+    } catch {
+      return iso;
+    }
   };
-
-  // 🔹 Tính tổng tiền
-  const totalAmount = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
     <div className="bg-white p-4 rounded-xl shadow">
-      <h2 className="text-lg font-semibold mb-2">Danh sách chi tiêu</h2>
-      {items.map((item) => (
+      <h2 className="text-lg font-semibold mb-2">Danh sách chi tiêu tháng {selectedMonth + 1}/{selectedYear}</h2>
+      {items.map(item => (
         <div key={item.id} className="flex justify-between border-b py-2">
           <div>
             <p className="font-medium">{item.name}</p>
-            <p className="text-sm text-gray-500">
-              Ngày: {formatDate(item.date)}
-            </p>
+            <p className="text-sm text-gray-500">Ngày: {fmt(item.date)}</p>
           </div>
           <div className="text-right">
-            <p className="text-red-500 font-semibold">
-              {Number(item.amount).toLocaleString()}₫
-            </p>
-            <button
-              onClick={() => remove(item.id)}
-              className="text-sm text-gray-400 hover:text-red-600"
-            >
-              Xóa
-            </button>
+            <p className="text-red-500 font-semibold">{Number(item.amount).toLocaleString()}₫</p>
+            <button onClick={() => remove(item.id)} className="text-sm text-gray-400 hover:text-red-600">Xóa</button>
           </div>
         </div>
       ))}
-
-      {/* Tổng tiền */}
-      <div className="text-right mt-4 font-bold text-lg">
-        Tổng: {totalAmount.toLocaleString()}₫
-      </div>
     </div>
   );
 }
