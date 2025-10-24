@@ -3,7 +3,12 @@ import { useState, useRef, useEffect } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
-export default function ExpenseForm({ user, setItems, selectedMonth, selectedYear }) {
+export default function ExpenseForm({
+  user,
+  setItems,
+  selectedMonth,
+  selectedYear,
+}) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [open, setOpen] = useState(false);
@@ -30,13 +35,13 @@ export default function ExpenseForm({ user, setItems, selectedMonth, selectedYea
       date: new Date().toISOString(),
       month: Number(selectedMonth),
       year: Number(selectedYear),
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     };
 
     try {
       const ref = await addDoc(collection(db, "expenses"), newExpense);
       // optimistic update: add to UI
-      setItems(prev => [{ id: ref.id, ...newExpense }, ...prev]);
+      setItems((prev) => [{ id: ref.id, ...newExpense }, ...prev]);
       setName("");
       setAmount("");
       setOpen(false);
@@ -77,7 +82,12 @@ export default function ExpenseForm({ user, setItems, selectedMonth, selectedYea
           >
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">Thêm khoản chi</h3>
-              <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-gray-800">✕</button>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-gray-500 hover:text-gray-800"
+              >
+                ✕
+              </button>
             </div>
 
             <form onSubmit={submit} className="space-y-3">
@@ -85,25 +95,43 @@ export default function ExpenseForm({ user, setItems, selectedMonth, selectedYea
                 className="w-full border p-2 rounded"
                 placeholder="Tên khoản chi"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 autoFocus
               />
               <input
-                className="w-full border p-2 rounded"
+                className="w-full border p-2 rounded text-left"
                 placeholder="Số tiền"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                type="number"
+                value={amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/,/g, ""); // bỏ dấu phẩy
+                  if (/^\d*$/.test(raw)) setAmount(raw); // chỉ nhận ký tự số
+                }}
+                inputMode="numeric"
               />
 
               <div className="flex justify-between items-center text-sm text-gray-500">
-                <div>Tháng: {Number(selectedMonth) + 1} / {selectedYear}</div>
-                <div className="italic">Ngày: {new Date().toLocaleDateString("vi-VN")}</div>
+                <div>
+                  Tháng: {Number(selectedMonth) + 1} / {selectedYear}
+                </div>
+                <div className="italic">
+                  Ngày: {new Date().toLocaleDateString("vi-VN")}
+                </div>
               </div>
 
               <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-green-500 text-white py-2 rounded">Thêm</button>
-                <button type="button" onClick={() => setOpen(false)} className="flex-1 bg-gray-200 py-2 rounded">Hủy</button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-green-500 text-white py-2 rounded"
+                >
+                  Thêm
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 bg-gray-200 py-2 rounded"
+                >
+                  Hủy
+                </button>
               </div>
             </form>
           </div>
