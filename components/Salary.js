@@ -121,7 +121,7 @@ export default function Salary({
         )}
       </div>
       <p className="text-gray-500 text-sm mt-3 text-left">
-        Nhập số tiền
+        Nhập lương tháng
       </p>
       <div className="flex gap-3">
         <div className="relative flex-1">
@@ -136,7 +136,7 @@ export default function Salary({
               if (!/^\d*$/.test(raw)) return;
               setInputValue(raw);
             }}
-            placeholder="Nhập lương tháng..."
+            placeholder="Nhập số tiền"
             className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition text-gray-800"
             inputMode="numeric"
           />
@@ -145,10 +145,10 @@ export default function Salary({
         <button
           onClick={handleSave}
           disabled={status === "loading"}
-          className={`px-5 py-2 rounded-lg text-white font-medium transition ${
+          className={`px-2 py-2 rounded-lg text-white font-medium transition ${
             status === "loading"
-              ? "bg-blue-300 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
+            ? "bg-blue-300 cursor-not-allowed"
+            : "bg-blue-500 hover:bg-blue-600"
           }`}
         >
           {status === "loading" ? (

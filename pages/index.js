@@ -156,8 +156,18 @@ export default function Home() {
           </div>
         </div>
 
+        {/* 🔹 Tổng hợp nhanh (bình thường) */}
+        <div className="space-y-5">
+          <Summary
+            items={items}
+            salary={salary}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
+        </div>
+
         {/* Bộ chọn tháng/năm */}
-        <div className="bg-white rounded-xl shadow p-3">
+        <div className="space-y-5">
           <ExpenseMonth
             selectedMonth={selectedMonth}
             setSelectedMonth={setSelectedMonth}
@@ -166,15 +176,6 @@ export default function Home() {
           />
         </div>
 
-        {/* 🔹 Tổng hợp nhanh (bình thường) */}
-        <div className="bg-white rounded-xl shadow-md p-4 border border-gray-100">
-          <Summary
-            items={items}
-            salary={salary}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-          />
-        </div>
 
         {/* 🔹 Nội dung chính */}
         <div className="space-y-5">
