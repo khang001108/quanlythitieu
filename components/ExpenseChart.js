@@ -1,95 +1,89 @@
+// components/ExpenseChart.js
 import {
-  ComposedChart,
+  BarChart,
   Bar,
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   LabelList,
 } from "recharts";
 
 const monthNames = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Th1","Th2","Th3","Th4","Th5","Th6","Th7","Th8","Th9","Th10","Th11","Th12"
 ];
 
-export default function ExpenseChart({ items = [], salary = {}, selectedYear }) {
-  // 🔹 Chi tiêu từng tháng
+export default function ExpenseChart({ items, salary }) {
+  // 🔹 Tổng chi theo tháng
   const monthlyExpense = {};
-  items.forEach((item) => {
+  items.forEach(item => {
     const date = new Date(item.date);
     if (isNaN(date)) return;
-    const m = date.getMonth();
-    monthlyExpense[m] = (monthlyExpense[m] || 0) + Number(item.amount || 0);
+    const month = date.getMonth();
+    monthlyExpense[month] = (monthlyExpense[month] || 0) + Number(item.amount || 0);
   });
 
-  // 🔹 Lương năm hiện tại
-  const yearData = salary[String(selectedYear)] || {};
-
-  // 🔹 Chuẩn bị dữ liệu cho biểu đồ
+  // 🔹 Dữ liệu biểu đồ
   const data = Array.from({ length: 12 }, (_, i) => {
-    const s = Number(yearData[String(i)] || 0);
-    const e = Number(monthlyExpense[i] || 0);
+    const s = salary[String(new Date().getFullYear())]?.[String(i)] || 0;
+    const e = monthlyExpense[i] || 0;
     return {
       month: monthNames[i],
-      expense: e,
-      salary: s,
-      remain: s - e,
+      Chi: e,
+      Lương: s,
+      "Còn lại": s - e > 0 ? s - e : 0,
     };
   });
 
-  // 🔹 Tổng cả năm
-  const totalSalary = Object.values(yearData).reduce((a, b) => a + Number(b || 0), 0);
-  const totalExpense = Object.values(monthlyExpense).reduce((a, b) => a + Number(b || 0), 0);
+  // 🔹 Cột Tổng
+  const totalSalary = Object.values(salary[String(new Date().getFullYear())] || {}).reduce((a, b) => a + b, 0);
+  const totalExpense = Object.values(monthlyExpense).reduce((a, b) => a + b, 0);
   data.push({
-    month: "Total",
-    expense: totalExpense,
-    salary: totalSalary,
-    remain: totalSalary - totalExpense,
+    month: "Tổng",
+    Chi: totalExpense,
+    Lương: totalSalary,
+    "Còn lại": totalSalary - totalExpense > 0 ? totalSalary - totalExpense : 0,
   });
 
+  // 🔹 Tooltip formatter
   const tooltipFormatter = (value) => `${value.toLocaleString()}₫`;
-  const maxY = Math.max(...data.map((d) => Math.max(d.salary, d.expense)), 5000000);
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow-md border border-gray-100">
-      <h2 className="text-lg font-semibold mb-2">📊 Biểu đồ lương & chi tiêu {selectedYear}</h2>
-      <ResponsiveContainer width="100%" height={350}>
-        <ComposedChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
-          <XAxis dataKey="month" />
-          <YAxis
-            tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
-            domain={[0, maxY]}
-          />
-          <Tooltip formatter={tooltipFormatter} />
+    <div className="bg-white p-5 rounded-2xl shadow-md border border-gray-100">
+      <h2 className="text-lg font-semibold mb-3 text-gray-800 text-center">
+        📈 Biểu đồ Lương - Chi - Còn lại
+      </h2>
 
-          <Bar dataKey="salary" fill="#10b981" barSize={30}>
-            <LabelList
-              dataKey="salary"
-              position="top"
-              formatter={(v) => (v > 0 ? v.toLocaleString() + "₫" : "")}
-            />
+      <ResponsiveContainer width="100%" height={360}>
+        <BarChart data={data} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+          <YAxis tickFormatter={(v) => `${(v / 1000000).toFixed(0)}M`} />
+          <Tooltip formatter={tooltipFormatter} />
+          <Legend />
+
+          {/* Cột Lương */}
+          <Bar dataKey="Lương" fill="#4ade80" radius={[6, 6, 0, 0]}>
+            <LabelList dataKey="Lương" position="top" formatter={(v) => v ? v.toLocaleString() + "₫" : ""} fontSize={10} />
           </Bar>
-          <Bar dataKey="expense" fill="#ef4444" barSize={30}>
-            <LabelList
-              dataKey="expense"
-              position="top"
-              formatter={(v) => (v > 0 ? v.toLocaleString() + "₫" : "")}
-            />
+
+          {/* Cột Chi */}
+          <Bar dataKey="Chi" fill="#f87171" radius={[6, 6, 0, 0]}>
+            <LabelList dataKey="Chi" position="top" formatter={(v) => v ? v.toLocaleString() + "₫" : ""} fontSize={10} />
           </Bar>
-          <Bar dataKey="remain" fill="#facc15" barSize={20}>
-            <LabelList
-              dataKey="remain"
-              position="insideTop"
-              formatter={(v) => (v > 0 ? v.toLocaleString() + "₫" : "")}
-            />
+
+          {/* Cột Còn lại */}
+          <Bar dataKey="Còn lại" fill="#facc15" radius={[6, 6, 0, 0]}>
+            <LabelList dataKey="Còn lại" position="top" formatter={(v) => v ? v.toLocaleString() + "₫" : ""} fontSize={10} />
           </Bar>
-        </ComposedChart>
+        </BarChart>
       </ResponsiveContainer>
 
-      <div className="text-gray-500 text-sm mt-3 text-center">
-        Trục Y hiển thị theo triệu đồng (M₫)
-      </div>
+      <p className="text-sm text-gray-500 mt-3 text-center">
+        💡 Mỗi cột thể hiện tổng <span className="text-green-600">lương</span>,{" "}
+        <span className="text-red-500">chi tiêu</span> và{" "}
+        <span className="text-yellow-500">số dư</span> của từng tháng.
+      </p>
     </div>
   );
 }
