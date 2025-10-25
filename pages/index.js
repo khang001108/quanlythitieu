@@ -8,8 +8,7 @@ import ExpenseChart from "../components/ExpenseChart";
 import ExpenseMonth from "../components/ExpenseMonth";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { LogOut, Trash2, User2, TrendingUp, TrendingDown } from "lucide-react";
-
+import { LogOut, Trash2, User2, TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -19,10 +18,14 @@ export default function Home() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showMonthPopup, setShowMonthPopup] = useState(false);
   const [showAddPopup, setShowAddPopup] = useState(false);
+  const [showRemaining, setShowRemaining] = useState(false);
 
   // 🔹 Tính tổng lương & chi tiêu cả năm hiện tại
   const yearData = salary[String(selectedYear)] || {};
-  const totalSalaryYear = Object.values(yearData).reduce((a, b) => a + Number(b || 0), 0);
+  const totalSalaryYear = Object.values(yearData).reduce(
+    (a, b) => a + Number(b || 0),
+    0
+  );
   const totalExpenseYear = items
     .filter((i) => i.year === selectedYear)
     .reduce((s, i) => s + Number(i.amount || 0), 0);
@@ -162,15 +165,30 @@ export default function Home() {
               <span className="font-medium text-gray-700">
                 💹 Tổng dư năm {selectedYear}:
               </span>
+
               <span
-                className={`font-semibold ${remainingYear < 0 ? "text-red-600" : "text-green-600"
-                  }`}
+                className={`font-semibold ${
+                  remainingYear < 0 ? "text-red-600" : "text-green-600"
+                }`}
               >
-                {remainingYear.toLocaleString()}₫
+                {showRemaining
+                  ? `${remainingYear.toLocaleString()}₫`
+                  : "••••••"}
               </span>
+
+              <button
+                onClick={() => setShowRemaining((p) => !p)}
+                className="text-gray-500 hover:text-gray-700 transition"
+                title={showRemaining ? "Ẩn số dư" : "Hiện số dư"}
+              >
+                {showRemaining ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
           </div>
-
         </div>
 
         {/* Hàng nút thao tác */}
@@ -195,7 +213,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-
 
         {/* 🔹 Tổng hợp nhanh */}
         <div className="space-y-5">
@@ -226,8 +243,6 @@ export default function Home() {
           />
         </div>
 
-
-
         {/* 🔹 Nội dung chính */}
         <div className="space-y-5">
           <Salary
@@ -253,5 +268,4 @@ export default function Home() {
       </div>
     </div>
   );
-
 }
