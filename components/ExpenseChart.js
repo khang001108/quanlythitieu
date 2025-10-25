@@ -105,7 +105,7 @@ export default function ExpenseChart({
       </div>
 
       {/* 🔹 Hiệu ứng chuyển biểu đồ mượt */}
-      <div className="relative h-[380px] overflow-hidden">
+      <div className="relative min-h-[380px] h-[380px] overflow-hidden transition-all duration-300 ease-in-out">
         <AnimatePresence mode="wait">
           {!showPie ? (
             <motion.div
@@ -114,7 +114,7 @@ export default function ExpenseChart({
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -100, opacity: 0 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              className="absolute inset-0"
+              className="absolute inset-0 w-full h-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -167,7 +167,7 @@ export default function ExpenseChart({
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -100, opacity: 0 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              className="absolute inset-0 flex items-center justify-center"
+              className="absolute inset-0 w-full h-full flex items-center justify-center"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
