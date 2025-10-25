@@ -17,6 +17,22 @@ const monthNames = [
   "Tháng 12",
 ];
 
+// 🔹 12 con giáp tương ứng 12 tháng
+const zodiacAnimals = [
+  "🐀", // Tý
+  "🐂", // Sửu
+  "🐅", // Dần
+  "🐇", // Mão
+  "🐉", // Thìn
+  "🐍", // Tỵ
+  "🐎", // Ngọ
+  "🐐", // Mùi
+  "🐒", // Thân
+  "🐓", // Dậu
+  "🐕", // Tuất
+  "🐖", // Hợi
+];
+
 export default function ExpenseMonth({
   selectedMonth,
   setSelectedMonth,
@@ -27,33 +43,33 @@ export default function ExpenseMonth({
   const modalRef = useRef();
   const currentYear = new Date().getFullYear();
 
-  // Đóng popup bằng phím Esc
+  // 🔸 Đóng popup bằng phím Esc
   useEffect(() => {
-    function onKey(e) {
-      if (e.key === "Escape") setOpen(false);
-    }
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
   return (
     <>
+      {/* 🔹 Nút mở popup */}
       <div className="flex justify-end mt-2">
         <button
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:brightness-110 active:scale-95 transition-all duration-200"
         >
           <CalendarDays className="w-5 h-5" />
-          <span className="font-semibold text-sm tracking-wide">Tháng/Năm</span>
+          <span className="font-semibold text-sm tracking-wide">
+            Tháng/Năm
+          </span>
         </button>
       </div>
 
-      {/* 🔹 Popup */}
+      {/* 🔹 Popup chọn tháng/năm */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           onMouseDown={(e) => {
-            // click ngoài đóng popup
             if (modalRef.current && !modalRef.current.contains(e.target)) {
               setOpen(false);
             }
@@ -62,13 +78,12 @@ export default function ExpenseMonth({
           {/* Nền mờ */}
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
-          {/* Hộp chọn tháng/năm */}
           <div
             ref={modalRef}
-            className="relative bg-white w-11/12 max-w-md p-6 rounded-xl shadow-2xl z-10"
+            className="relative bg-white w-11/12 max-w-md p-6 rounded-2xl shadow-2xl z-10"
             onMouseDown={(e) => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* 🔸 Header */}
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <div className="bg-blue-100 p-2 rounded-full">
@@ -86,58 +101,64 @@ export default function ExpenseMonth({
               </button>
             </div>
 
-            {/* Form chọn */}
-            <div className="flex flex-wrap justify-center gap-5">
-              {/* Chọn tháng */}
-              <div className="flex flex-col items-center">
-                <label className="text-sm text-gray-500 mb-1">Tháng</label>
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-center focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer bg-gray-50 hover:bg-white"
+            {/* 🔹 Năm ở trên */}
+            <div className="text-center mb-5">
+              <p className="text-sm text-gray-500 mb-2">Năm</p>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setSelectedYear((y) => y - 1)}
+                  className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-blue-100 transition"
                 >
-                  {monthNames.map((m, i) => (
-                    <option key={i} value={i}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Chọn năm */}
-              <div className="flex flex-col items-center">
-                <label className="text-sm text-gray-500 mb-1">Năm</label>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-center focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition cursor-pointer bg-gray-50 hover:bg-white"
+                  ◀
+                </button>
+                <span className="text-xl font-bold text-gray-800 w-24 text-center">
+                  {selectedYear}
+                </span>
+                <button
+                  onClick={() => setSelectedYear((y) => y + 1)}
+                  className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-blue-100 transition"
                 >
-                  {Array.from({ length: 6 }, (_, i) => currentYear - 1 + i).map(
-                    (y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    )
-                  )}
-                </select>
+                  ▶
+                </button>
               </div>
             </div>
 
-            {/* Footer */}
-            <p className="text-xs text-gray-500 text-center mt-4 italic">
+            {/* 🔹 Bảng chọn tháng (hiện hình 12 con giáp) */}
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mb-2">Tháng</p>
+              <div className="grid grid-cols-4 gap-3">
+                {monthNames.map((m, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedMonth(i)}
+                    className={`flex flex-col items-center justify-center py-2 rounded-lg text-sm font-medium transition-all ${selectedMonth === i
+                        ? "bg-blue-500 text-white shadow-lg scale-105"
+                        : "bg-gray-100 hover:bg-blue-100 text-gray-700"
+                      }`}
+                  >
+                    <span className="text-2xl mb-1">{zodiacAnimals[i]}</span>
+                    <span>{m.replace("Tháng ", "T")}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 🔹 Gợi ý */}
+            <p className="text-xs text-gray-500 text-center mt-5 italic">
               Dữ liệu sẽ tự động cập nhật khi bạn thay đổi tháng hoặc năm.
             </p>
 
+            {/* 🔹 Footer */}
             <div className="flex gap-2 mt-5">
-              <button
+              {/* <button
                 onClick={() => setOpen(false)}
-                className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+                className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
               >
                 Xác nhận
-              </button>
+              </button> */}
               <button
                 onClick={() => setOpen(false)}
-                className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300"
+                className="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition"
               >
                 Đóng
               </button>

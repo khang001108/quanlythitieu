@@ -126,28 +126,38 @@ export default function ExpenseForm({
               />
 
               {/* 🔹 Chọn ngày */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600 flex items-center gap-1">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 flex items-center gap-1">
                   <CalendarDays className="w-4 h-4 text-orange-500" />
                   Ngày chi:
-                </label>
+                </span>
+
+                {/* Nút chọn ngày */}
                 <DatePicker
                   selected={new Date(date)}
                   onChange={(d) => setDate(d.toISOString().split("T")[0])}
                   locale={vi}
                   dateFormat="dd/MM/yyyy"
-                  className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-orange-400 w-28"
+                  customInput={
+                    <button
+                      type="button"
+                      className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 flex items-center gap-2 shadow-sm transition"
+                    >
+                      📅 {new Date(date).toLocaleDateString("vi-VN")}
+                    </button>
+                  }
                 />
+
+                {/* Nút chọn hôm nay */}
                 <button
                   type="button"
-                  onClick={() =>
-                    setDate(new Date().toISOString().split("T")[0])
-                  }
-                  className="text-xs text-orange-600 hover:underline ml-2"
+                  onClick={() => setDate(new Date().toISOString().split("T")[0])}
+                  className="text-xs text-orange-600 hover:underline ml-1"
                 >
                   Hôm nay
                 </button>
               </div>
+
 
               {/* Hiển thị tháng / năm */}
               <div className="flex justify-between items-center text-sm text-gray-500">

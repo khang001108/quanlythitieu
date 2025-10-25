@@ -9,10 +9,26 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { CalendarDays, Search } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { vi } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
+
+// 🐭 Mảng 12 con giáp tương ứng với 12 tháng
+const zodiacAnimals = [
+  "🐀", // Tháng 1 - Tý
+  "🐂", // Tháng 2 - Sửu
+  "🐅", // Tháng 3 - Dần
+  "🐇", // Tháng 4 - Mão
+  "🐉", // Tháng 5 - Thìn
+  "🐍", // Tháng 6 - Tỵ
+  "🐎", // Tháng 7 - Ngọ
+  "🐐", // Tháng 8 - Mùi
+  "🐒", // Tháng 9 - Thân
+  "🐓", // Tháng 10 - Dậu
+  "🐕", // Tháng 11 - Tuất
+  "🐖", // Tháng 12 - Hợi
+];
 
 export default function ExpenseList({
   user,
@@ -27,7 +43,7 @@ export default function ExpenseList({
   const [openCalendar, setOpenCalendar] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Lấy dữ liệu theo tháng
+  // 🔹 Lấy dữ liệu Firestore theo tháng/năm
   useEffect(() => {
     if (!user || selectedMonth == null || selectedYear == null) {
       setItems([]);
@@ -66,7 +82,7 @@ export default function ExpenseList({
   // 🧭 Lọc theo ngày được chọn
   const filteredItems = useMemo(() => {
     if (!searchDate) return items;
-    const target = new Date(searchDate).toISOString().split("T")[0];
+    const target = searchDate.toLocaleDateString("en-CA");
     return items.filter((i) => i.date?.startsWith(target));
   }, [items, searchDate]);
 
@@ -96,12 +112,12 @@ export default function ExpenseList({
 
   return (
     <>
-      {/* <div className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100"> */}
       <div className="w-full max-w-5xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between md:items-center mb-5 gap-3">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            📋 Chi tiêu tháng {selectedMonth + 1}/{selectedYear}
+            {zodiacAnimals[selectedMonth]} 📋 Chi tiêu tháng {selectedMonth + 1}/
+            {selectedYear}
           </h2>
 
           <div className="flex items-center gap-2">
@@ -137,36 +153,45 @@ export default function ExpenseList({
             Không có khoản chi nào.
           </div>
         ) : (
-          <div className="w-full max-h-80 overflow-y-auto pr-2 divide-y">
+          <div className="w-full max-h-80 overflow-y-auto pr-2">
             {sortedItems.map((item) => (
               <div
                 key={item.id}
-                className="flex justify-between py-3 items-start hover:bg-orange-50 rounded-xl px-2 transition"
+                className="group relative flex justify-between items-center p-4 mb-3 bg-gradient-to-r from-white to-orange-50 border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-[2px] transition-all duration-200"
               >
-                <div className="flex items-start gap-2">
-                  <span className="text-lg leading-none">🏷</span>
+                {/* Thanh màu nhỏ bên trái */}
+                <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-orange-400 to-orange-600 rounded-l-2xl" />
+
+                {/* Thông tin chính */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-600 text-xl shadow-inner">
+                    💸
+                  </div>
                   <div>
-                    <p className="font-medium text-gray-800">{item.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-semibold text-gray-800 text-base leading-tight">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
                       📅 {new Date(item.date).toLocaleDateString("vi-VN")}
                     </p>
                   </div>
                 </div>
 
+                {/* Giá trị + nút */}
                 <div className="text-right">
-                  <p className="text-red-500 font-semibold">
+                  <p className="text-lg font-bold text-red-500">
                     {Number(item.amount).toLocaleString()}₫
                   </p>
-                  <div className="flex flex-col items-end gap-1 mt-1">
+                  <div className="flex items-center justify-end gap-3 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={() => setSelectedItem(item)}
-                      className="text-sm text-blue-500 hover:underline"
+                      className="text-sm text-blue-500 hover:text-blue-700 transition"
                     >
                       Chi tiết
                     </button>
                     <button
                       onClick={() => remove(item.id)}
-                      className="text-sm text-gray-400 hover:text-red-500"
+                      className="text-sm text-gray-400 hover:text-red-500 transition"
                     >
                       Xóa
                     </button>
@@ -175,6 +200,7 @@ export default function ExpenseList({
               </div>
             ))}
           </div>
+
         )}
 
         {/* Tổng kết */}
@@ -183,7 +209,7 @@ export default function ExpenseList({
         </div>
       </div>
 
-      {/* 📅 Popup lịch Việt Nam */}
+      {/* 📅 Popup lịch */}
       {openCalendar && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
@@ -238,9 +264,7 @@ function ExpenseDetailPopup({ item, onClose }) {
   const modalRef = useRef();
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
+    const onKey = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -255,7 +279,7 @@ function ExpenseDetailPopup({ item, onClose }) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         ref={modalRef}
-        className="relative bg-white w-11/12 max-w-md p-6 rounded-2xl shadow-2xl z-10"
+        className="relative bg-orange-100 w-11/12 max-w-md p-6 rounded-2xl shadow-2xl z-10"
       >
         <h3 className="text-lg font-semibold mb-3 text-gray-800">
           Chi tiết khoản chi

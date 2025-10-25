@@ -3,28 +3,28 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Loader2, CheckCircle, AlertCircle, Wallet } from "lucide-react";
 
-const monthNames = [
-  "Tháng 1",
-  "Tháng 2",
-  "Tháng 3",
-  "Tháng 4",
-  "Tháng 5",
-  "Tháng 6",
-  "Tháng 7",
-  "Tháng 8",
-  "Tháng 9",
-  "Tháng 10",
-  "Tháng 11",
-  "Tháng 12",
+// 🐭 12 con giáp ứng với 12 tháng
+const zodiacAnimals = [
+  "🐀", // Tý - Tháng 1
+  "🐂", // Sửu - Tháng 2
+  "🐅", // Dần - Tháng 3
+  "🐇", // Mão - Tháng 4
+  "🐉", // Thìn - Tháng 5
+  "🐍", // Tỵ - Tháng 6
+  "🐎", // Ngọ - Tháng 7
+  "🐐", // Mùi - Tháng 8
+  "🐒", // Thân - Tháng 9
+  "🐓", // Dậu - Tháng 10
+  "🐕", // Tuất - Tháng 11
+  "🐖", // Hợi - Tháng 12
 ];
 
-export default function Salary({
-  user,
-  salary,
-  setSalary,
-  selectedMonth,
-  selectedYear,
-}) {
+const monthNames = [
+  "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12",
+];
+
+export default function Salary({ user, salary, setSalary, selectedMonth, selectedYear }) {
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [status, setStatus] = useState(null);
@@ -38,7 +38,6 @@ export default function Salary({
       try {
         const ref = doc(db, "users", user.uid);
         const snap = await getDoc(ref);
-
         if (snap.exists()) {
           const data = snap.data().salary || {};
           setSalary(data);
@@ -57,8 +56,10 @@ export default function Salary({
   // 🔹 Lưu dữ liệu
   const handleSave = async () => {
     if (!user) return alert("Bạn cần đăng nhập");
-    const val = Number(inputValue);
-    if (isNaN(val) || val < 0) return alert("Vui lòng nhập số hợp lệ");
+    if (inputValue.trim() === "") return alert("Vui lòng nhập số tiền lương hợp lệ");
+
+    const val = Number(inputValue.replace(/,/g, ""));
+    if (isNaN(val) || val <= 0) return alert("Vui lòng nhập số lớn hơn 0");
 
     const newSalary = {
       ...salary,
@@ -67,20 +68,19 @@ export default function Salary({
         [String(selectedMonth)]: val,
       },
     };
-    setSalary(newSalary);
+
     setStatus("loading");
 
     try {
-      await setDoc(
-        doc(db, "users", user.uid),
-        { salary: newSalary },
-        { merge: true }
-      );
+      await setDoc(doc(db, "users", user.uid), { salary: newSalary }, { merge: true });
+      setSalary(newSalary);
       setStatus("success");
-      setInputValue("");
+
+      // 🔒 Không cho lưu lại khi đã lưu thành công
       setTimeout(() => {
-        setStatus(null);
         setOpen(false);
+        setInputValue("");
+        setStatus(null);
       }, 1200);
     } catch (err) {
       console.error("Lỗi cập nhật:", err);
@@ -141,7 +141,7 @@ export default function Salary({
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <Wallet className="text-green-600 w-5 h-5" />
-                Lương {monthNames[selectedMonth]} {selectedYear}
+                {zodiacAnimals[selectedMonth]} {monthNames[selectedMonth]} {selectedYear}
               </h2>
               <button
                 onClick={() => setOpen(false)}
@@ -155,9 +155,7 @@ export default function Salary({
 
             <div className="flex gap-2 mb-4">
               <div className="relative flex-1">
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  ₫
-                </span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">₫</span>
                 <input
                   type="text"
                   value={inputValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
@@ -189,17 +187,15 @@ export default function Salary({
             <div className="flex gap-2">
               <button
                 onClick={handleSave}
-                disabled={status === "loading"}
-                className={`flex-1 py-2 rounded-lg text-white font-medium transition ${
-                  status === "loading"
+                disabled={status === "loading" || status === "success"}
+                className={`flex-1 py-2 rounded-lg text-white font-medium transition ${status === "loading" || status === "success"
                     ? "bg-green-300 cursor-not-allowed"
                     : "bg-green-500 hover:bg-green-600"
-                }`}
+                  }`}
               >
                 {status === "loading" ? (
                   <span className="flex items-center justify-center">
-                    <Loader2 className="animate-spin w-4 h-4 mr-1" /> Đang
-                    lưu...
+                    <Loader2 className="animate-spin w-4 h-4 mr-1" /> Đang lưu...
                   </span>
                 ) : (
                   "Lưu"
