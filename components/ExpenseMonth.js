@@ -3,8 +3,18 @@ import { useState, useRef, useEffect } from "react";
 import { CalendarDays } from "lucide-react";
 
 const monthNames = [
-  "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12",
+  "Tháng 1",
+  "Tháng 2",
+  "Tháng 3",
+  "Tháng 4",
+  "Tháng 5",
+  "Tháng 6",
+  "Tháng 7",
+  "Tháng 8",
+  "Tháng 9",
+  "Tháng 10",
+  "Tháng 11",
+  "Tháng 12",
 ];
 
 export default function ExpenseMonth({
@@ -28,17 +38,15 @@ export default function ExpenseMonth({
 
   return (
     <>
-      {/* 🔹 Nút mở popup */}
-      <div className="flex justify-start">
+      <div className="flex justify-end mt-2">
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:brightness-105 transition"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:brightness-110 active:scale-95 transition-all duration-200"
         >
-          <CalendarDays className="w-5 h-5" /> Tháng / Năm
+          <CalendarDays className="w-5 h-5" />
+          <span className="font-semibold text-sm tracking-wide">Tháng/Năm</span>
         </button>
       </div>
-
-
 
       {/* 🔹 Popup */}
       {open && (

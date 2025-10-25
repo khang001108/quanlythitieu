@@ -57,7 +57,7 @@ export default function ExpenseForm({
       <div className="flex justify-end">
         <button
           onClick={() => setOpen(true)}
-          className="bg-green-500 text-white px-4 py-2 rounded-full shadow hover:brightness-105 transition"
+          className="bg-orange-500 text-white px-8 py-2 rounded-full shadow hover:brightness-105 transition"
         >
           + Thêm khoản chi
         </button>
@@ -124,7 +124,7 @@ export default function ExpenseForm({
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-green-500 text-white py-2 rounded"
+                  className="flex-1 bg-orange-500 text-white py-2 rounded"
                 >
                   Thêm
                 </button>
