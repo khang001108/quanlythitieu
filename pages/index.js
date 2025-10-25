@@ -49,22 +49,22 @@ export default function Home() {
   useEffect(() => {
     if (!user) return;
 
-    (async () => {
-      const { collection, query, where, getDocs } = await import(
-        "firebase/firestore"
-      );
-
+    import("firebase/firestore").then(({ collection, query, where, onSnapshot }) => {
       const q = query(
         collection(db, "expenses"),
         where("userId", "==", user.uid),
         where("year", "==", selectedYear)
       );
 
-      const snap = await getDocs(q);
-      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setYearItems(data);
-    })();
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setYearItems(data);
+      });
+
+      return () => unsubscribe();
+    });
   }, [user, selectedYear]);
+
 
   const handleLogout = async () => {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
@@ -212,9 +212,8 @@ export default function Home() {
               </span>
 
               <span
-                className={`font-semibold ${
-                  remainingYear < 0 ? "text-red-600" : "text-green-600"
-                }`}
+                className={`font-semibold ${remainingYear < 0 ? "text-red-600" : "text-green-600"
+                  }`}
               >
                 {showRemaining
                   ? `${remainingYear.toLocaleString()}₫`

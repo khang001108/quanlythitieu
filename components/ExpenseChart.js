@@ -43,8 +43,8 @@ export default function ExpenseChart({
       item.month !== undefined
         ? item.month // ✅ dữ liệu Firestore lưu 0–11, không trừ 1
         : item.date
-        ? new Date(item.date).getMonth()
-        : NaN
+          ? new Date(item.date).getMonth()
+          : NaN
     );
     const itemYear = Number(
       item.year ?? (item.date ? new Date(item.date).getFullYear() : NaN)
@@ -104,114 +104,98 @@ export default function ExpenseChart({
         </button>
       </div>
 
-      {/* 🔹 Biểu đồ cột */}
-      <ResponsiveContainer width="100%" height={380}>
-        <BarChart
-          data={data}
-          margin={{ top: 30, right: 20, left: -10, bottom: 20 }}
-          barGap={8}
-          barCategoryGap="30%"
-        >
-          <defs>
-            {/* 💚 Gradient Lương - xanh đậm hơn */}
-            <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
-              <stop offset="100%" stopColor="#14532d" stopOpacity={1} />
-            </linearGradient>
-
-            {/* ❤️ Gradient Chi tiêu - đỏ đậm hơn */}
-            <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity={1} />
-              <stop offset="100%" stopColor="#7f1d1d" stopOpacity={1} />
-            </linearGradient>
-
-            {/* 💛 Gradient Còn lại - vàng cam đậm */}
-            <linearGradient id="yellowGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#facc15" stopOpacity={1} />
-              <stop offset="100%" stopColor="#ca8a04" stopOpacity={1} />
-            </linearGradient>
-          </defs>
-
-          <XAxis
-            dataKey="month"
-            tick={{ fontSize: 12, fill: "#555" }}
-            axisLine={{ stroke: "#ddd" }}
-            tickLine={false}
-          />
-          <YAxis
-            tickFormatter={(v) =>
-              v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v.toLocaleString()
-            }
-            tick={{ fontSize: 12, fill: "#555" }}
-            axisLine={{ stroke: "#ddd" }}
-            tickLine={false}
-          />
-
-          <Legend
-            iconType="circle"
-            wrapperStyle={{ fontSize: 13, color: "#555" }}
-          />
-
-          {/* 💚 Lương */}
-          <Bar
-            dataKey="Lương"
-            fill="url(#greenGradient)"
-            barSize={35}
-            onClick={(p, i) => safeSelect(p, i, "Lương")}
-            animationDuration={800}
-          />
-
-          {/* ❤️ Chi tiêu */}
-          <Bar
-            dataKey="Chi"
-            fill="url(#redGradient)"
-            barSize={35}
-            onClick={(p, i) => safeSelect(p, i, "Chi tiêu")}
-            animationDuration={900}
-          />
-
-          {/* 💛 Còn lại */}
-          <Bar
-            dataKey="Còn lại"
-            fill="url(#yellowGradient)"
-            barSize={25}
-            onClick={(p, i) => safeSelect(p, i, "Còn lại")}
-            animationDuration={1000}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-
-      {/* 🔹 Biểu đồ tròn */}
-      {showPie && (
-        <ResponsiveContainer width="100%" height={350}>
-          <PieChart>
-            <Pie
-              data={[
-                { name: "Lương", value: totalSalary },
-                { name: "Chi tiêu", value: totalExpense },
-                {
-                  name: "Còn lại",
-                  value:
-                    totalSalary - totalExpense > 0
-                      ? totalSalary - totalExpense
-                      : 0,
-                },
-              ]}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={120}
-              label
+      {/* 🔹 Hiệu ứng chuyển biểu đồ mượt */}
+      <div className="relative h-[380px] overflow-hidden">
+        <AnimatePresence mode="wait">
+          {!showPie ? (
+            <motion.div
+              key="bar"
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              className="absolute inset-0"
             >
-              <Cell fill="#16a34a" />
-              <Cell fill="#dc2626" />
-              <Cell fill="#facc15" />
-            </Pie>
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      )}
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={data}
+                  margin={{ top: 30, right: 20, left: -10, bottom: 20 }}
+                  barGap={8}
+                  barCategoryGap="30%"
+                >
+                  {/* ⬇️ phần trong BarChart giữ nguyên */}
+                  <defs>
+                    <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#14532d" stopOpacity={1} />
+                    </linearGradient>
+                    <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#7f1d1d" stopOpacity={1} />
+                    </linearGradient>
+                    <linearGradient id="yellowGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#facc15" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#ca8a04" stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 12, fill: "#555" }}
+                    axisLine={{ stroke: "#ddd" }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tickFormatter={(v) =>
+                      v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v.toLocaleString()
+                    }
+                    tick={{ fontSize: 12, fill: "#555" }}
+                    axisLine={{ stroke: "#ddd" }}
+                    tickLine={false}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: 13, color: "#555" }} />
+                  <Bar dataKey="Lương" fill="url(#greenGradient)" barSize={35} animationDuration={800} />
+                  <Bar dataKey="Chi" fill="url(#redGradient)" barSize={35} animationDuration={900} />
+                  <Bar dataKey="Còn lại" fill="url(#yellowGradient)" barSize={25} animationDuration={1000} />
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="pie"
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: "Lương", value: totalSalary },
+                      { name: "Chi tiêu", value: totalExpense },
+                      { name: "Còn lại", value: Math.max(totalSalary - totalExpense, 0) },
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    label
+                  >
+                    <Cell fill="#16a34a" />
+                    <Cell fill="#dc2626" />
+                    <Cell fill="#facc15" />
+                  </Pie>
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
 
       {!showPie && (
         <p className="text-sm text-gray-500 mt-3 text-center">
@@ -244,9 +228,8 @@ export default function ExpenseChart({
               💸 Chi tiêu: {Number(selected["Chi"] || 0).toLocaleString()}₫
             </p>
             <p
-              className={`text-lg font-bold mt-2 ${
-                selected["Còn lại"] < 0 ? "text-red-600" : "text-green-600"
-              }`}
+              className={`text-lg font-bold mt-2 ${selected["Còn lại"] < 0 ? "text-red-600" : "text-green-600"
+                }`}
             >
               Còn lại: {Number(selected["Còn lại"] || 0).toLocaleString()}₫
             </p>
