@@ -8,7 +8,15 @@ import ExpenseChart from "../components/ExpenseChart";
 import ExpenseMonth from "../components/ExpenseMonth";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { LogOut, Trash2, User2, TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
+import {
+  LogOut,
+  Trash2,
+  User2,
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -224,34 +232,37 @@ export default function Home() {
           />
         </div>
 
-        {/* Hàng chứa 2 nút: chọn tháng/năm + thêm khoản chi */}
-        <div className="flex items-center justify-between">
-          {/* Bên trái: Nút chọn tháng/năm (mở popup) */}
-          <ExpenseMonth
-            selectedMonth={selectedMonth}
-            setSelectedMonth={setSelectedMonth}
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-          />
+        {/* --- Khu vực điều khiển --- */}
+        <div className="flex flex-col items-center gap-3">
+          {/* Hàng 1: Tháng/Năm + Lương */}
+          <div className="flex items-center justify-between w-full">
+            {/* Bên trái: Nút chọn tháng/năm */}
+            <ExpenseMonth
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+            />
 
-          {/* Bên phải: Nút thêm khoản chi (mở popup) */}
-          <ExpenseForm
-            user={user}
-            setItems={setItems}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-          />
-        </div>
+            {/* Bên phải: Nút lương */}
+            <Salary
+              user={user}
+              salary={salary}
+              setSalary={setSalary}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+            />
+          </div>
 
-        {/* 🔹 Nội dung chính */}
-        <div className="space-y-5">
-          <Salary
-            user={user}
-            salary={salary}
-            setSalary={setSalary}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-          />
+          {/* Hàng 2: Nút thêm khoản chi ở giữa */}
+          <div className="flex justify-center w-full">
+            <ExpenseForm
+              user={user}
+              setItems={setItems}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+            />
+          </div>
           <ExpenseList
             user={user}
             items={items}
