@@ -41,7 +41,7 @@ export default function Salary({
           const data = snap.data().salary || {};
           setSalary(data);
           const yearData = data[String(selectedYear)] || {};
-          setInputValue(yearData[String(selectedMonth)] || "");
+          //setInputValue(yearData[String(selectedMonth)] || "");
         } else {
           setSalary({});
         }
@@ -58,7 +58,7 @@ export default function Salary({
   useEffect(() => {
     if (salary) {
       const yearData = salary[selectedYear] || {};
-      setInputValue(yearData[selectedMonth] || "");
+      //setInputValue(yearData[selectedMonth] || "");
     }
   }, [selectedMonth, selectedYear, salary]);
 
