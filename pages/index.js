@@ -1,4 +1,5 @@
 // pages/index.js
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Salary from "../components/Salary";
 import ExpenseForm from "../components/ExpenseForm";
