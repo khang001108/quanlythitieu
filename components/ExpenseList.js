@@ -12,6 +12,7 @@ import { db } from "../lib/firebase";
 import { CalendarDays, Search } from "lucide-react";
 import DatePicker from "react-datepicker";
 import { vi } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function ExpenseList({
   user,
@@ -26,7 +27,7 @@ export default function ExpenseList({
   const [openCalendar, setOpenCalendar] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Lấy dữ liệu tháng
+  // 🔹 Lấy dữ liệu theo tháng
   useEffect(() => {
     if (!user || selectedMonth == null || selectedYear == null) {
       setItems([]);
@@ -89,16 +90,17 @@ export default function ExpenseList({
   }, [filteredItems, sortType]);
 
   const remove = async (id) => {
-    if (!confirm("Bạn có chắc muốn xóa?")) return;
+    if (!confirm("Bạn có chắc muốn xóa khoản chi này?")) return;
     await deleteDoc(doc(db, "expenses", id));
   };
 
   return (
     <>
-      <div className="bg-white p-5 rounded-2xl shadow-lg border border-gray-100">
+      {/* <div className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100"> */}
+      <div className="w-full max-w-5xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-3">
-          <h2 className="text-xl font-semibold text-gray-800">
+        <div className="flex flex-col md:flex-row justify-between md:items-center mb-5 gap-3">
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             📋 Chi tiêu tháng {selectedMonth + 1}/{selectedYear}
           </h2>
 
@@ -106,7 +108,7 @@ export default function ExpenseList({
             {/* 🔸 Nút mở lịch */}
             <button
               onClick={() => setOpenCalendar(true)}
-              className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2 rounded-lg shadow hover:brightness-110 active:scale-95 transition-all text-sm"
+              className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-xl shadow hover:brightness-110 active:scale-95 transition-all text-sm"
             >
               <CalendarDays className="w-4 h-4" /> Ngày
             </button>
@@ -115,7 +117,7 @@ export default function ExpenseList({
             <select
               value={sortType}
               onChange={(e) => setSortType(e.target.value)}
-              className="border rounded-lg text-sm p-2 focus:ring-2 focus:ring-orange-400"
+              className="border rounded-xl text-sm px-3 py-2 focus:ring-2 focus:ring-orange-400"
             >
               <option value="newest">🕒 Mới nhất</option>
               <option value="oldest">🕓 Cũ nhất</option>
@@ -135,11 +137,11 @@ export default function ExpenseList({
             Không có khoản chi nào.
           </div>
         ) : (
-          <div className="max-h-72 overflow-y-auto pr-1 divide-y">
+          <div className="w-full max-h-80 overflow-y-auto pr-2 divide-y">
             {sortedItems.map((item) => (
               <div
                 key={item.id}
-                className="flex justify-between py-3 items-start hover:bg-orange-50 rounded-lg transition"
+                className="flex justify-between py-3 items-start hover:bg-orange-50 rounded-xl px-2 transition"
               >
                 <div className="flex items-start gap-2">
                   <span className="text-lg leading-none">🏷</span>
@@ -176,7 +178,7 @@ export default function ExpenseList({
         )}
 
         {/* Tổng kết */}
-        <div className="mt-4 text-center text-sm text-gray-600 font-medium">
+        <div className="mt-5 text-center text-sm text-gray-600 font-medium">
           🧾 Tổng: {sortedItems.length} khoản chi
         </div>
       </div>
@@ -231,7 +233,7 @@ export default function ExpenseList({
   );
 }
 
-// Popup chi tiết
+// 📌 Popup chi tiết khoản chi
 function ExpenseDetailPopup({ item, onClose }) {
   const modalRef = useRef();
 
@@ -254,7 +256,6 @@ function ExpenseDetailPopup({ item, onClose }) {
       <div
         ref={modalRef}
         className="relative bg-white w-11/12 max-w-md p-6 rounded-2xl shadow-2xl z-10"
-        onMouseDown={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold mb-3 text-gray-800">
           Chi tiết khoản chi
@@ -262,18 +263,18 @@ function ExpenseDetailPopup({ item, onClose }) {
 
         <div className="space-y-2 text-gray-700">
           <p>
-            <span className="font-semibold">Tên:</span> {item.name}
+            <span className="font-semibold">🏷 Tên:</span> {item.name}
           </p>
           <p>
-            <span className="font-semibold">Số tiền:</span>{" "}
+            <span className="font-semibold">💰 Số tiền:</span>{" "}
             {Number(item.amount).toLocaleString()}₫
           </p>
           <p>
-            <span className="font-semibold">Ngày Chi:</span>{" "}
+            <span className="font-semibold">📅 Ngày chi:</span>{" "}
             {new Date(item.date).toLocaleDateString("vi-VN")}
           </p>
           <p>
-            <span className="font-semibold">Tháng/Năm Tạo:</span>{" "}
+            <span className="font-semibold">🗓 Tháng/Năm:</span>{" "}
             {(item.month ?? 0) + 1} / {item.year ?? "?"}
           </p>
         </div>

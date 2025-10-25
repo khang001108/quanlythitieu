@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { CalendarDays } from "lucide-react";
+import DatePicker from "react-datepicker";
+import { vi } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function ExpenseForm({
   user,
@@ -128,10 +131,12 @@ export default function ExpenseForm({
                   <CalendarDays className="w-4 h-4 text-orange-500" />
                   Ngày chi:
                 </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                +{" "}
+                <DatePicker
+                  selected={new Date(date)}
+                  onChange={(d) => setDate(d.toISOString().split("T")[0])}
+                  locale={vi}
+                  dateFormat="dd/MM/yyyy"
                   className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-orange-400"
                 />
                 <button
@@ -148,10 +153,10 @@ export default function ExpenseForm({
               {/* Hiển thị tháng / năm */}
               <div className="flex justify-between items-center text-sm text-gray-500">
                 <div>
-                  Tháng: {Number(selectedMonth) + 1} / {selectedYear}
+                  Tháng Tiêu: {Number(selectedMonth) + 1} / {selectedYear}
                 </div>
                 <div className="italic">
-                  Ngày: {new Date(date).toLocaleDateString("vi-VN")}
+                  Ngày Tạo: {new Date(date).toLocaleDateString("vi-VN")}
                 </div>
               </div>
 

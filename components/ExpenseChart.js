@@ -10,13 +10,27 @@ import {
 import { useState } from "react";
 
 const monthNames = [
-  "Th1", "Th2", "Th3", "Th4", "Th5", "Th6",
-  "Th7", "Th8", "Th9", "Th10", "Th11", "Th12"
+  "Th1",
+  "Th2",
+  "Th3",
+  "Th4",
+  "Th5",
+  "Th6",
+  "Th7",
+  "Th8",
+  "Th9",
+  "Th10",
+  "Th11",
+  "Th12",
 ];
 
-export default function ExpenseChart({ items = [], salary = {} }) {
+export default function ExpenseChart({
+  items = [],
+  salary = {},
+  selectedYear,
+}) {
   const [selected, setSelected] = useState(null); // popup state
-  const currentYear = new Date().getFullYear();
+  const currentYear = selectedYear; // 🔹 dùng năm được chọn
 
   // 🔹 Tổng chi theo tháng
   const monthlyExpense = {};
