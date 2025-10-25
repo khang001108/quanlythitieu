@@ -22,6 +22,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [salary, setSalary] = useState({});
   const [items, setItems] = useState([]);
+  const [yearItems, setYearItems] = useState([]); // ✅ thêm mới
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showMonthPopup, setShowMonthPopup] = useState(false);
@@ -43,6 +44,26 @@ export default function Home() {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
+  // ✅ Load toàn bộ chi tiêu của năm để biểu đồ có đủ dữ liệu
+  useEffect(() => {
+    if (!user) return;
+
+    (async () => {
+      const { collection, query, where, getDocs } = await import(
+        "firebase/firestore"
+      );
+
+      const q = query(
+        collection(db, "expenses"),
+        where("userId", "==", user.uid),
+        where("year", "==", selectedYear)
+      );
+
+      const snap = await getDocs(q);
+      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setYearItems(data);
+    })();
+  }, [user, selectedYear]);
 
   const handleLogout = async () => {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
@@ -286,9 +307,9 @@ export default function Home() {
             selectedYear={selectedYear}
           />
           <ExpenseChart
-            items={items}
+            items={yearItems} // ✅ dùng dữ liệu cả năm
             salary={salary}
-            selectedYear={selectedYear} // 🔹 truyền năm được chọn
+            selectedYear={selectedYear}
           />
         </div>
       </div>
