@@ -1,7 +1,7 @@
-// components/ExpenseForm.js
 import { useState, useRef, useEffect } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { CalendarDays } from "lucide-react";
 
 export default function ExpenseForm({
   user,
@@ -12,9 +12,11 @@ export default function ExpenseForm({
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]); // 🔹 Mặc định hôm nay
   const modalRef = useRef();
+  const [toast, setToast] = useState(null);
 
-  // close when clicking outside modal content
+  // Đóng popup khi nhấn Esc
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") setOpen(false);
@@ -32,7 +34,7 @@ export default function ExpenseForm({
       userId: user.uid,
       name,
       amount: Number(amount),
-      date: new Date().toISOString(),
+      date: new Date(date).toISOString(), // 🔹 Lưu theo ngày chọn
       month: Number(selectedMonth),
       year: Number(selectedYear),
       createdAt: serverTimestamp(),
@@ -40,11 +42,15 @@ export default function ExpenseForm({
 
     try {
       const ref = await addDoc(collection(db, "expenses"), newExpense);
-      // optimistic update: add to UI
       setItems((prev) => [{ id: ref.id, ...newExpense }, ...prev]);
       setName("");
       setAmount("");
+      setDate(new Date().toISOString().split("T")[0]);
       setOpen(false);
+
+      // 🔹 Hiển thị thông báo
+      setToast("Bạn đã thêm một khoản chi mới!");
+      setTimeout(() => setToast(null), 3000);
     } catch (err) {
       console.error("Lỗi thêm:", err);
       alert("Thêm thất bại");
@@ -53,36 +59,40 @@ export default function ExpenseForm({
 
   return (
     <>
+      {/* 🔹 Thông báo nổi */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-fade-in-out z-[9999]">
+          {toast}
+        </div>
+      )}
+
       {/* 🔹 Nút mở popup */}
       <div className="flex justify-end">
         <button
           onClick={() => setOpen(true)}
-          className="bg-orange-500 text-white px-8 py-2 rounded-full shadow hover:brightness-105 transition"
+          className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:brightness-110 active:scale-95 transition-all duration-200"
         >
           + Thêm khoản chi
         </button>
       </div>
 
-
       {/* 🔹 Popup */}
       {open && (
-        // backdrop
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           onMouseDown={(e) => {
-            // click outside modal content closes it
             if (modalRef.current && !modalRef.current.contains(e.target)) {
               setOpen(false);
             }
           }}
         >
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-
           <div
             ref={modalRef}
             className="relative bg-white w-11/12 max-w-md p-6 rounded-xl shadow-2xl z-10"
             onMouseDown={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">Thêm khoản chi</h3>
               <button
@@ -106,32 +116,57 @@ export default function ExpenseForm({
                 placeholder="Số tiền"
                 value={amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 onChange={(e) => {
-                  const raw = e.target.value.replace(/,/g, ""); // bỏ dấu phẩy
-                  if (/^\d*$/.test(raw)) setAmount(raw); // chỉ nhận ký tự số
+                  const raw = e.target.value.replace(/,/g, "");
+                  if (/^\d*$/.test(raw)) setAmount(raw);
                 }}
                 inputMode="numeric"
               />
 
+              {/* 🔹 Chọn ngày */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 flex items-center gap-1">
+                  <CalendarDays className="w-4 h-4 text-orange-500" />
+                  Ngày chi:
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-orange-400"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDate(new Date().toISOString().split("T")[0])
+                  }
+                  className="text-xs text-orange-600 hover:underline ml-2"
+                >
+                  Hôm nay
+                </button>
+              </div>
+
+              {/* Hiển thị tháng / năm */}
               <div className="flex justify-between items-center text-sm text-gray-500">
                 <div>
                   Tháng: {Number(selectedMonth) + 1} / {selectedYear}
                 </div>
                 <div className="italic">
-                  Ngày: {new Date().toLocaleDateString("vi-VN")}
+                  Ngày: {new Date(date).toLocaleDateString("vi-VN")}
                 </div>
               </div>
 
+              {/* Nút hành động */}
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-orange-500 text-white py-2 rounded"
+                  className="flex-1 bg-orange-500 text-white py-2 rounded hover:brightness-110"
                 >
                   Thêm
                 </button>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="flex-1 bg-gray-200 py-2 rounded"
+                  className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300"
                 >
                   Hủy
                 </button>

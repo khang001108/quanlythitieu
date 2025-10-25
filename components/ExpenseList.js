@@ -1,4 +1,3 @@
-// components/ExpenseList.js
 import { useEffect, useState, useRef, useMemo } from "react";
 import {
   collection,
@@ -10,6 +9,9 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { CalendarDays, Search } from "lucide-react";
+import DatePicker from "react-datepicker";
+import { vi } from "date-fns/locale";
 
 export default function ExpenseList({
   user,
@@ -19,8 +21,12 @@ export default function ExpenseList({
   selectedYear,
 }) {
   const [selectedItem, setSelectedItem] = useState(null);
-  const [sortType, setSortType] = useState("newest"); // sắp xếp mặc định: mới nhất
+  const [sortType, setSortType] = useState("newest");
+  const [searchDate, setSearchDate] = useState(null);
+  const [openCalendar, setOpenCalendar] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  // 🔹 Lấy dữ liệu tháng
   useEffect(() => {
     if (!user || selectedMonth == null || selectedYear == null) {
       setItems([]);
@@ -35,170 +41,198 @@ export default function ExpenseList({
       orderBy("createdAt", "desc")
     );
 
-    const unsub = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((d) => {
-          const docData = d.data();
-          return {
-            id: d.id,
-            name: docData.name || "",
-            amount: Number(String(docData.amount).replace(/,/g, "")) || 0,
-            date:
-              docData.date ||
-              (docData.createdAt
-                ? docData.createdAt.toDate().toISOString()
-                : ""),
-            month: docData.month ?? null,
-            year: docData.year ?? null,
-            createdAt: docData.createdAt
-              ? docData.createdAt.toDate()
-              : new Date(docData.date),
-          };
-        });
-        setItems(data);
-      },
-      (err) => {
-        console.error("🔥 Lỗi query:", err);
-        setItems([]);
-      }
-    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((d) => {
+        const docData = d.data();
+        return {
+          id: d.id,
+          name: docData.name || "",
+          amount: Number(String(docData.amount).replace(/,/g, "")) || 0,
+          date: docData.date || "",
+          month: docData.month ?? null,
+          year: docData.year ?? null,
+          createdAt: docData.createdAt
+            ? docData.createdAt.toDate()
+            : new Date(docData.date),
+        };
+      });
+      setItems(data);
+    });
 
     return () => unsub();
   }, [user, selectedMonth, selectedYear, setItems]);
 
-  // 🗑️ Xóa chi tiêu
-  const remove = async (id) => {
-    if (!confirm("Bạn có chắc muốn xóa?")) return;
-    try {
-      await deleteDoc(doc(db, "expenses", id));
-    } catch (err) {
-      console.error("Xóa lỗi:", err);
-      alert("Xóa thất bại");
-    }
-  };
+  // 🧭 Lọc theo ngày được chọn
+  const filteredItems = useMemo(() => {
+    if (!searchDate) return items;
+    const target = new Date(searchDate).toISOString().split("T")[0];
+    return items.filter((i) => i.date?.startsWith(target));
+  }, [items, searchDate]);
 
-  // 📅 Định dạng ngày
-  const fmt = (iso) => {
-    try {
-      const d = new Date(iso);
-      return (
-        d.toLocaleTimeString("vi-VN") + " " + d.toLocaleDateString("vi-VN")
-      );
-    } catch {
-      return iso;
-    }
-  };
-
-  // 🔹 Sắp xếp danh sách theo lựa chọn
+  // 🔹 Sắp xếp
   const sortedItems = useMemo(() => {
-    const copy = [...items];
+    const copy = [...filteredItems];
     switch (sortType) {
       case "high":
-        return copy.sort((a, b) => b.amount - a.amount); // tiêu nhiều → ít
+        return copy.sort((a, b) => b.amount - a.amount);
       case "low":
-        return copy.sort((a, b) => a.amount - b.amount); // tiêu ít → nhiều
+        return copy.sort((a, b) => a.amount - b.amount);
       case "oldest":
         return copy.sort(
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
-      case "newest":
       default:
         return copy.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
     }
-  }, [items, sortType]);
+  }, [filteredItems, sortType]);
 
-  if (!items || items.length === 0) {
-    return (
-      <div className="bg-white p-4 rounded-xl shadow text-center text-gray-500">
-        Chưa có khoản chi nào trong tháng {selectedMonth + 1}/{selectedYear}
-      </div>
-    );
-  }
+  const remove = async (id) => {
+    if (!confirm("Bạn có chắc muốn xóa?")) return;
+    await deleteDoc(doc(db, "expenses", id));
+  };
 
   return (
     <>
-      <div className="bg-white p-4 rounded-xl shadow">
-        {/* Tiêu đề + bộ lọc sắp xếp */}
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold">
-            Danh sách chi tiêu tháng {selectedMonth + 1}/{selectedYear}
+      <div className="bg-white p-5 rounded-2xl shadow-lg border border-gray-100">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-3">
+          <h2 className="text-xl font-semibold text-gray-800">
+            📋 Chi tiêu tháng {selectedMonth + 1}/{selectedYear}
           </h2>
 
-          <select
-            value={sortType}
-            onChange={(e) => setSortType(e.target.value)}
-            className="border rounded-lg text-sm p-1"
-          >
-            <option value="newest">🕒 Mới nhất → Cũ nhất</option>
-            <option value="oldest">🕓 Cũ nhất → Mới nhất</option>
-            <option value="high">💸 Tiêu nhiều → Ít</option>
-            <option value="low">💰 Tiêu ít → Nhiều</option>
-          </select>
+          <div className="flex items-center gap-2">
+            {/* 🔸 Nút mở lịch */}
+            <button
+              onClick={() => setOpenCalendar(true)}
+              className="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2 rounded-lg shadow hover:brightness-110 active:scale-95 transition-all text-sm"
+            >
+              <CalendarDays className="w-4 h-4" /> Ngày
+            </button>
+
+            {/* 🔸 Sắp xếp */}
+            <select
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value)}
+              className="border rounded-lg text-sm p-2 focus:ring-2 focus:ring-orange-400"
+            >
+              <option value="newest">🕒 Mới nhất</option>
+              <option value="oldest">🕓 Cũ nhất</option>
+              <option value="high">💸 Tiêu nhiều</option>
+              <option value="low">💰 Tiêu ít</option>
+            </select>
+          </div>
         </div>
 
-        {/* Danh sách cuộn */}
-        <div className="max-h-64 overflow-y-auto pr-1">
-          {sortedItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex justify-between border-b py-2 items-start"
-            >
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-gray-500">
-                  Ngày cập nhật:{" "}
-                  {new Date(item.date).toLocaleDateString("vi-VN")}
-                </p>
-              </div>
+        {/* Danh sách */}
+        {loading ? (
+          <div className="text-center py-10 text-gray-500 animate-pulse">
+            Đang tải dữ liệu...
+          </div>
+        ) : sortedItems.length === 0 ? (
+          <div className="text-center py-10 text-gray-400">
+            Không có khoản chi nào.
+          </div>
+        ) : (
+          <div className="max-h-72 overflow-y-auto pr-1 divide-y">
+            {sortedItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex justify-between py-3 items-start hover:bg-orange-50 rounded-lg transition"
+              >
+                <div className="flex items-start gap-2">
+                  <span className="text-lg leading-none">🏷</span>
+                  <div>
+                    <p className="font-medium text-gray-800">{item.name}</p>
+                    <p className="text-xs text-gray-500">
+                      📅 {new Date(item.date).toLocaleDateString("vi-VN")}
+                    </p>
+                  </div>
+                </div>
 
-              <div className="text-right">
-                <p className="text-red-500 font-semibold">
-                  {Number(item.amount).toLocaleString()}₫
-                </p>
-
-                <div className="flex flex-col items-end gap-1 mt-1">
-                  <button
-                    onClick={() => setSelectedItem(item)}
-                    className="text-sm text-blue-500 hover:underline"
-                  >
-                    Chi tiết
-                  </button>
-                  <button
-                    onClick={() => remove(item.id)}
-                    className="text-sm text-gray-400 hover:text-red-600"
-                  >
-                    Xóa
-                  </button>
+                <div className="text-right">
+                  <p className="text-red-500 font-semibold">
+                    {Number(item.amount).toLocaleString()}₫
+                  </p>
+                  <div className="flex flex-col items-end gap-1 mt-1">
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="text-sm text-blue-500 hover:underline"
+                    >
+                      Chi tiết
+                    </button>
+                    <button
+                      onClick={() => remove(item.id)}
+                      className="text-sm text-gray-400 hover:text-red-500"
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Tổng số khoản chi */}
-        <div className="mt-3 text-center text-sm text-gray-600 font-medium">
-          🧾 Tổng: {items.length} khoản chi trong tháng {selectedMonth + 1}/
-          {selectedYear}
+        {/* Tổng kết */}
+        <div className="mt-4 text-center text-sm text-gray-600 font-medium">
+          🧾 Tổng: {sortedItems.length} khoản chi
         </div>
       </div>
 
-      {/* Popup chi tiết khoản chi */}
+      {/* 📅 Popup lịch Việt Nam */}
+      {openCalendar && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setOpenCalendar(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">
+              Chọn ngày cần lọc
+            </h3>
+            <DatePicker
+              selected={searchDate}
+              onChange={(date) => setSearchDate(date)}
+              inline
+              locale={vi}
+              dateFormat="dd/MM/yyyy"
+            />
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setSearchDate(null)}
+                className="border px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100"
+              >
+                Xóa lọc
+              </button>
+              <button
+                onClick={() => setOpenCalendar(false)}
+                className="bg-orange-500 text-white px-4 py-1.5 rounded-lg hover:brightness-110"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup chi tiết */}
       {selectedItem && (
         <ExpenseDetailPopup
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
-          fmt={fmt}
         />
       )}
     </>
   );
 }
 
-// 🔹 Popup hiển thị chi tiết khoản chi
-function ExpenseDetailPopup({ item, onClose, fmt }) {
+// Popup chi tiết
+function ExpenseDetailPopup({ item, onClose }) {
   const modalRef = useRef();
 
   useEffect(() => {
@@ -219,10 +253,12 @@ function ExpenseDetailPopup({ item, onClose, fmt }) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         ref={modalRef}
-        className="relative bg-white w-11/12 max-w-md p-6 rounded-xl shadow-2xl z-10"
+        className="relative bg-white w-11/12 max-w-md p-6 rounded-2xl shadow-2xl z-10"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold mb-3">Chi tiết khoản chi</h3>
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">
+          Chi tiết khoản chi
+        </h3>
 
         <div className="space-y-2 text-gray-700">
           <p>
@@ -233,10 +269,11 @@ function ExpenseDetailPopup({ item, onClose, fmt }) {
             {Number(item.amount).toLocaleString()}₫
           </p>
           <p>
-            <span className="font-semibold">Ngày tạo:</span> {fmt(item.date)}
+            <span className="font-semibold">Ngày Chi:</span>{" "}
+            {new Date(item.date).toLocaleDateString("vi-VN")}
           </p>
           <p>
-            <span className="font-semibold">Tháng/Năm:</span>{" "}
+            <span className="font-semibold">Tháng/Năm Tạo:</span>{" "}
             {(item.month ?? 0) + 1} / {item.year ?? "?"}
           </p>
         </div>
@@ -244,7 +281,7 @@ function ExpenseDetailPopup({ item, onClose, fmt }) {
         <div className="flex justify-end mt-5">
           <button
             onClick={onClose}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:brightness-110"
           >
             Đóng
           </button>
