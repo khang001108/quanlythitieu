@@ -85,6 +85,7 @@ export default function Salary({
         { merge: true }
       );
       setStatus("success");
+      setInputValue("");
       setTimeout(() => setStatus(null), 2500);
     } catch (err) {
       console.error("Lỗi cập nhật:", err);
