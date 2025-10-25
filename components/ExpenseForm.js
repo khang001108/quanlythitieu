@@ -131,13 +131,12 @@ export default function ExpenseForm({
                   <CalendarDays className="w-4 h-4 text-orange-500" />
                   Ngày chi:
                 </label>
-                +{" "}
                 <DatePicker
                   selected={new Date(date)}
                   onChange={(d) => setDate(d.toISOString().split("T")[0])}
                   locale={vi}
                   dateFormat="dd/MM/yyyy"
-                  className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-orange-400"
+                  className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-orange-400 w-28"
                 />
                 <button
                   type="button"
