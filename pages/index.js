@@ -108,7 +108,22 @@ export default function Home() {
         }
       }
 
-      await Promise.all(delExpenses);
+      // Thực hiện đồng thời
+      await Promise.all([
+        Promise.all(delExpenses),
+        updateDoc(userRef, { salary }),
+      ]);
+
+      // Cập nhật lại state sau khi Firestore xong
+      setSalary((prev) => {
+        const copy = { ...prev };
+        if (copy[selectedYear]?.[selectedMonth] !== undefined) {
+          delete copy[selectedYear][selectedMonth];
+          if (Object.keys(copy[selectedYear]).length === 0)
+            delete copy[selectedYear];
+        }
+        return { ...copy };
+      });
       setItems([]);
       alert(
         `Đã xóa toàn bộ dữ liệu tháng ${selectedMonth + 1}/${selectedYear}.`
@@ -273,7 +288,7 @@ export default function Home() {
           <ExpenseChart
             items={items}
             salary={salary}
-            selectedMonth={selectedMonth}
+            selectedYear={selectedYear} // 🔹 truyền năm được chọn
           />
         </div>
       </div>
